@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, message, Divider } from 'antd'
+import { Form, Input, Button, Typography, Card, Divider, App } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { useRegister } from '../api'
@@ -16,6 +16,7 @@ export function RegisterPage() {
   const [form] = Form.useForm<RegisterFormData>()
   const navigate = useNavigate()
   const register = useRegister()
+  const { message } = App.useApp()
 
   const handleSubmit = async (values: RegisterFormData) => {
     register.mutate(

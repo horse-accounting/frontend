@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, message } from 'antd'
+import { Form, Input, Button, Typography, Card, App } from 'antd'
 import { LockOutlined, ArrowLeftOutlined, SafetyOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useChangePassword } from '../api'
@@ -15,6 +15,7 @@ export function ChangePasswordPage() {
   const [form] = Form.useForm<ChangePasswordFormData>()
   const navigate = useNavigate()
   const changePassword = useChangePassword()
+  const { message } = App.useApp()
 
   const handleSubmit = async (values: ChangePasswordFormData) => {
     changePassword.mutate(

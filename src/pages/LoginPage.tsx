@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, message, Divider } from 'antd'
+import { Form, Input, Button, Typography, Card, Divider, App } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '../api'
@@ -14,6 +14,7 @@ export function LoginPage() {
   const [form] = Form.useForm<LoginFormData>()
   const navigate = useNavigate()
   const login = useLogin()
+  const { message } = App.useApp()
 
   const handleSubmit = async (values: LoginFormData) => {
     login.mutate(values, {

@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, message, Result } from 'antd'
+import { Form, Input, Button, Typography, Card, Result, App } from 'antd'
 import { LockOutlined } from '@ant-design/icons'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
@@ -17,6 +17,7 @@ export function ResetPasswordPage() {
   const navigate = useNavigate()
   const [resetSuccess, setResetSuccess] = useState(false)
   const resetPassword = useResetPassword()
+  const { message } = App.useApp()
 
   const token = searchParams.get('token')
 

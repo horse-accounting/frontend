@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, message, Result } from 'antd'
+import { Form, Input, Button, Typography, Card, Result, App } from 'antd'
 import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
@@ -14,6 +14,7 @@ export function ForgotPasswordPage() {
   const [form] = Form.useForm<ForgotPasswordFormData>()
   const [emailSent, setEmailSent] = useState(false)
   const forgotPassword = useForgotPassword()
+  const { message } = App.useApp()
 
   const handleSubmit = async (values: ForgotPasswordFormData) => {
     forgotPassword.mutate(values, {

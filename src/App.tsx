@@ -5,6 +5,8 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { AduunuudPage } from './pages/AduunuudPage'
+import { AduuDetailPage } from './pages/AduuDetailPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { MainLayout } from './components/MainLayout'
 import './App.css'
@@ -28,6 +30,8 @@ function App() {
           }
         >
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/aduu" element={<AduunuudPage />} />
+          <Route path="/aduu/:id" element={<AduuDetailPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
 
