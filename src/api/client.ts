@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -8,6 +8,19 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 })
+
+// Custom error class to hold backend error info
+export class ApiError extends Error {
+  code: string
+  status: number
+
+  constructor(message: string, code: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+    this.status = status
+  }
+}
 
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
@@ -24,12 +37,23 @@ apiClient.interceptors.request.use(
 // Response interceptor - handle errors
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  (error: AxiosError<{ success: boolean; error: { code: string; message: string } }>) => {
+    // Extract backend error message
+    const backendError = error.response?.data?.error
+    const status = error.response?.status || 500
+
+    if (status === 401 && !window.location.pathname.includes('/login')) {
       localStorage.removeItem('accessToken')
       window.location.href = '/login'
     }
-    return Promise.reject(error)
+
+    // Create ApiError with backend message
+    if (backendError) {
+      return Promise.reject(new ApiError(backendError.message, backendError.code, status))
+    }
+
+    // Fallback to generic error
+    return Promise.reject(new ApiError(error.message || 'Алдаа гарлаа', 'UNKNOWN_ERROR', status))
   }
 )
 

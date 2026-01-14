@@ -25,12 +25,12 @@ export function RegisterPage() {
         password: values.password,
       },
       {
-        onSuccess: () => {
-          message.success('Бүртгэл амжилттай үүслээ')
+        onSuccess: (result) => {
+          message.success(result.message)
           navigate('/')
         },
         onError: (error) => {
-          message.error(error.message || 'Бүртгэлд алдаа гарлаа')
+          message.error(error.message)
         },
       }
     )

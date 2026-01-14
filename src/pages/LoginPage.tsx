@@ -17,12 +17,12 @@ export function LoginPage() {
 
   const handleSubmit = async (values: LoginFormData) => {
     login.mutate(values, {
-      onSuccess: () => {
-        message.success('Амжилттай нэвтэрлээ')
+      onSuccess: (result) => {
+        message.success(result.message)
         navigate('/')
       },
       onError: (error) => {
-        message.error(error.message || 'Нэвтрэхэд алдаа гарлаа')
+        message.error(error.message)
       },
     })
   }
@@ -75,7 +75,6 @@ export function LoginPage() {
               label="Нууц үг"
               rules={[
                 { required: true, message: 'Нууц үгээ оруулна уу' },
-                { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт' },
               ]}
             >
               <Input.Password
@@ -85,7 +84,11 @@ export function LoginPage() {
               />
             </Form.Item>
 
-            <Form.Item style={{ marginBottom: 16, marginTop: 24 }}>
+            <div style={{ textAlign: 'right', marginTop: -16, marginBottom: 16 }}>
+              <Link to="/forgot-password">Нууц үг мартсан?</Link>
+            </div>
+
+            <Form.Item style={{ marginBottom: 16 }}>
               <Button
                 type="primary"
                 htmlType="submit"

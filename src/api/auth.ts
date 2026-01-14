@@ -12,31 +12,38 @@ import type {
   User,
 } from './types'
 
+// ==================== Response with message ====================
+
+interface AuthResult<T> {
+  data: T
+  message: string
+}
+
 // ==================== API Functions ====================
 
-const login = async (data: LoginRequest) => {
+const login = async (data: LoginRequest): Promise<AuthResult<LoginResponse>> => {
   const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data)
-  return response.data.data
+  return { data: response.data.data, message: response.data.message }
 }
 
-const register = async (data: RegisterRequest) => {
+const register = async (data: RegisterRequest): Promise<AuthResult<RegisterResponse>> => {
   const response = await apiClient.post<ApiResponse<RegisterResponse>>('/auth/register', data)
-  return response.data.data
+  return { data: response.data.data, message: response.data.message }
 }
 
-const logout = async () => {
+const logout = async (): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/logout')
-  return response.data
+  return { message: response.data.message }
 }
 
-const forgotPassword = async (data: ForgotPasswordRequest) => {
+const forgotPassword = async (data: ForgotPasswordRequest): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/forgot-password', data)
-  return response.data
+  return { message: response.data.message }
 }
 
-const resetPassword = async (data: ResetPasswordRequest) => {
+const resetPassword = async (data: ResetPasswordRequest): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/reset-password', data)
-  return response.data
+  return { message: response.data.message }
 }
 
 const getMe = async () => {
@@ -44,9 +51,9 @@ const getMe = async () => {
   return response.data.data.user
 }
 
-const changePassword = async (data: ChangePasswordRequest) => {
+const changePassword = async (data: ChangePasswordRequest): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/change-password', data)
-  return response.data
+  return { message: response.data.message }
 }
 
 // ==================== Query Keys ====================
@@ -63,9 +70,9 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
-      setAuthToken(data.accessToken)
-      queryClient.setQueryData(authKeys.me(), data.user)
+    onSuccess: (result) => {
+      setAuthToken(result.data.accessToken)
+      queryClient.setQueryData(authKeys.me(), result.data.user)
     },
   })
 }
@@ -75,9 +82,9 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: register,
-    onSuccess: (data) => {
-      setAuthToken(data.accessToken)
-      queryClient.setQueryData(authKeys.me(), data.user)
+    onSuccess: (result) => {
+      setAuthToken(result.data.accessToken)
+      queryClient.setQueryData(authKeys.me(), result.data.user)
     },
   })
 }
