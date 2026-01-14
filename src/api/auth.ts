@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient, setAuthToken, clearAuthToken } from './client'
+import { apiClient } from './client'
+import { useAuthStore } from '../stores'
 import type {
   ApiResponse,
   LoginRequest,
@@ -31,7 +32,7 @@ const register = async (data: RegisterRequest): Promise<AuthResult<RegisterRespo
   return { data: response.data.data, message: response.data.message }
 }
 
-const logout = async (): Promise<{ message: string }> => {
+const logoutApi = async (): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/logout')
   return { message: response.data.message }
 }
@@ -67,11 +68,12 @@ export const authKeys = {
 
 export const useLogin = () => {
   const queryClient = useQueryClient()
+  const setAuth = useAuthStore((state) => state.setAuth)
 
   return useMutation({
     mutationFn: login,
     onSuccess: (result) => {
-      setAuthToken(result.data.accessToken)
+      setAuth(result.data.user, result.data.accessToken)
       queryClient.setQueryData(authKeys.me(), result.data.user)
     },
   })
@@ -79,11 +81,12 @@ export const useLogin = () => {
 
 export const useRegister = () => {
   const queryClient = useQueryClient()
+  const setAuth = useAuthStore((state) => state.setAuth)
 
   return useMutation({
     mutationFn: register,
     onSuccess: (result) => {
-      setAuthToken(result.data.accessToken)
+      setAuth(result.data.user, result.data.accessToken)
       queryClient.setQueryData(authKeys.me(), result.data.user)
     },
   })
@@ -91,11 +94,12 @@ export const useRegister = () => {
 
 export const useLogout = () => {
   const queryClient = useQueryClient()
+  const logout = useAuthStore((state) => state.logout)
 
   return useMutation({
-    mutationFn: logout,
+    mutationFn: logoutApi,
     onSuccess: () => {
-      clearAuthToken()
+      logout()
       queryClient.clear()
     },
   })

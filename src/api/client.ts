@@ -1,4 +1,5 @@
-import axios, { AxiosError } from 'axios'
+import axios, { type AxiosError } from 'axios'
+import { useAuthStore } from '../stores'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -22,10 +23,10 @@ export class ApiError extends Error {
   }
 }
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token from zustand store
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    const token = useAuthStore.getState().accessToken
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -43,7 +44,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status || 500
 
     if (status === 401 && !window.location.pathname.includes('/login')) {
-      localStorage.removeItem('accessToken')
+      useAuthStore.getState().logout()
       window.location.href = '/login'
     }
 
@@ -56,18 +57,3 @@ apiClient.interceptors.response.use(
     return Promise.reject(new ApiError(error.message || 'Алдаа гарлаа', 'UNKNOWN_ERROR', status))
   }
 )
-
-// Helper to set token
-export const setAuthToken = (token: string) => {
-  localStorage.setItem('accessToken', token)
-}
-
-// Helper to clear token
-export const clearAuthToken = () => {
-  localStorage.removeItem('accessToken')
-}
-
-// Helper to get token
-export const getAuthToken = () => {
-  return localStorage.getItem('accessToken')
-}

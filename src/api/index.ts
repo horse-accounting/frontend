@@ -1,5 +1,5 @@
 // API Client
-export { apiClient, setAuthToken, clearAuthToken, getAuthToken } from './client'
+export { apiClient } from './client'
 
 // Types
 export * from './types'
