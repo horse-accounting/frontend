@@ -1,10 +1,5 @@
 import { Card, Descriptions, Tag, Statistic, Row, Col, Typography, Avatar } from 'antd'
-import {
-  UserOutlined,
-  TrophyOutlined,
-  MailOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons'
+import { UserOutlined, TrophyOutlined } from '@ant-design/icons'
 import { useMe } from '../api'
 
 const { Title, Text } = Typography
@@ -15,22 +10,12 @@ export function DashboardPage() {
   return (
     <div>
       {/* Welcome Section */}
-      <Card
-        style={{
-          marginBottom: 24,
-          background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)',
-          border: 'none',
-          borderRadius: 12,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <Card className="dashboard-welcome">
+        <div className="dashboard-welcome-inner">
           <Avatar
             size={72}
             icon={<UserOutlined />}
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              border: '3px solid rgba(255, 255, 255, 0.3)',
-            }}
+            className="dashboard-welcome-avatar"
           />
           <div>
             <Title level={3} style={{ color: '#fff', marginBottom: 4 }}>
@@ -45,81 +30,39 @@ export function DashboardPage() {
 
       {/* Statistics */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ borderRadius: 12 }}
-            hoverable
-          >
+        <Col xs={12} sm={12} lg={6}>
+          <Card className="dashboard-stat-card" hoverable>
             <Statistic
               title="Нийт адуу"
               value={0}
               prefix={
-                <span
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: '#e6f7ff',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 8,
-                  }}
-                >
+                <span className="dashboard-stat-icon" style={{ background: '#e6f7ff' }}>
                   🐴
                 </span>
               }
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ borderRadius: 12 }}
-            hoverable
-          >
+        <Col xs={12} sm={12} lg={6}>
+          <Card className="dashboard-stat-card" hoverable>
             <Statistic
               title="Нийт үүлдэр"
               value={0}
               prefix={
-                <span
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: '#fff7e6',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 8,
-                  }}
-                >
+                <span className="dashboard-stat-icon" style={{ background: '#fff7e6' }}>
                   📋
                 </span>
               }
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            style={{ borderRadius: 12 }}
-            hoverable
-          >
+        <Col xs={12} sm={12} lg={6}>
+          <Card className="dashboard-stat-card" hoverable>
             <Statistic
               title="Нийт амжилт"
               value={0}
               prefix={
-                <span
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: '#fff1f0',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 8,
-                  }}
-                >
+                <span className="dashboard-stat-icon" style={{ background: '#fff1f0' }}>
                   <TrophyOutlined style={{ fontSize: 20, color: '#cf1322' }} />
                 </span>
               }
@@ -136,35 +79,13 @@ export function DashboardPage() {
             <span>Хэрэглэгчийн мэдээлэл</span>
           </div>
         }
-        style={{ marginTop: 24, borderRadius: 12 }}
+        className="dashboard-user-card"
       >
         {user && (
           <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ fontWeight: 500 }}>
-            <Descriptions.Item
-              label={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <UserOutlined /> Нэр
-                </span>
-              }
-            >
-              {user.name}
-            </Descriptions.Item>
-            <Descriptions.Item
-              label={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MailOutlined /> Имэйл
-                </span>
-              }
-            >
-              {user.email}
-            </Descriptions.Item>
-            <Descriptions.Item
-              label={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <SafetyCertificateOutlined /> Эрх
-                </span>
-              }
-            >
+            <Descriptions.Item label="Нэр">{user.name}</Descriptions.Item>
+            <Descriptions.Item label="Имэйл">{user.email}</Descriptions.Item>
+            <Descriptions.Item label="Эрх">
               <Tag color={user.role === 'admin' ? 'red' : 'blue'}>
                 {user.role === 'admin' ? 'Админ' : 'Хэрэглэгч'}
               </Tag>

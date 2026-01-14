@@ -36,7 +36,7 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto' }}>
+    <div className="change-password-container">
       <Button
         type="text"
         icon={<ArrowLeftOutlined />}
@@ -46,25 +46,9 @@ export function ChangePasswordPage() {
         Буцах
       </Button>
 
-      <Card
-        style={{
-          borderRadius: 12,
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
-        }}
-      >
+      <Card className="change-password-card">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}
-          >
+          <div className="change-password-icon">
             <SafetyOutlined style={{ fontSize: 28, color: '#fff' }} />
           </div>
           <Title level={3} style={{ marginBottom: 8 }}>
