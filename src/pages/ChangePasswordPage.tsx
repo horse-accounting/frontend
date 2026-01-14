@@ -1,6 +1,6 @@
 import { Form, Input, Button, Typography, Card, message } from 'antd'
-import { LockOutlined, ArrowLeftOutlined } from '@ant-design/icons'
-import { Link, useNavigate } from 'react-router-dom'
+import { LockOutlined, ArrowLeftOutlined, SafetyOutlined } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 import { useChangePassword } from '../api'
 
 const { Title, Text } = Typography
@@ -36,17 +36,43 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <div className="dashboard-container">
-      <Card className="dashboard-card" style={{ maxWidth: 500 }}>
-        <div style={{ marginBottom: 24 }}>
-          <Link to="/">
-            <ArrowLeftOutlined /> Буцах
-          </Link>
-        </div>
+    <div style={{ maxWidth: 480, margin: '0 auto' }}>
+      <Button
+        type="text"
+        icon={<ArrowLeftOutlined />}
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: 16, padding: '4px 0' }}
+      >
+        Буцах
+      </Button>
 
-        <div className="auth-card-header" style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Title level={3}>Нууц үг солих</Title>
-          <Text type="secondary">Одоогийн болон шинэ нууц үгээ оруулна уу</Text>
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
+          >
+            <SafetyOutlined style={{ fontSize: 28, color: '#fff' }} />
+          </div>
+          <Title level={3} style={{ marginBottom: 8 }}>
+            Нууц үг солих
+          </Title>
+          <Text type="secondary">
+            Аюулгүй байдлын үүднээс нууц үгээ тогтмол солих нь зүйтэй
+          </Text>
         </div>
 
         <Form
@@ -64,8 +90,8 @@ export function ChangePasswordPage() {
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
+              prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+              placeholder="Одоогийн нууц үгээ оруулна уу"
               size="large"
             />
           </Form.Item>
@@ -75,12 +101,17 @@ export function ChangePasswordPage() {
             label="Шинэ нууц үг"
             rules={[
               { required: true, message: 'Шинэ нууц үгээ оруулна уу' },
-              { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт' },
+              { min: 6, message: 'Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой' },
             ]}
+            extra={
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Хамгийн багадаа 6 тэмдэгт
+              </Text>
+            }
           >
             <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
+              prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+              placeholder="Шинэ нууц үгээ оруулна уу"
               size="large"
             />
           </Form.Item>
@@ -102,13 +133,13 @@ export function ChangePasswordPage() {
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
+              prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+              placeholder="Шинэ нууц үгээ дахин оруулна уу"
               size="large"
             />
           </Form.Item>
 
-          <Form.Item style={{ marginTop: 24 }}>
+          <Form.Item style={{ marginTop: 32, marginBottom: 0 }}>
             <Button
               type="primary"
               htmlType="submit"
@@ -117,6 +148,14 @@ export function ChangePasswordPage() {
               block
             >
               Нууц үг солих
+            </Button>
+            <Button
+              size="large"
+              block
+              onClick={() => navigate('/')}
+              style={{ marginTop: 12 }}
+            >
+              Болих
             </Button>
           </Form.Item>
         </Form>

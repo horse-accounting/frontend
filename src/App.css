@@ -103,16 +103,82 @@
   }
 }
 
-/* ==================== Dashboard ==================== */
-.dashboard-container {
-  min-height: 100vh;
-  background: #f0f2f5;
-  padding: 24px;
+/* ==================== Main Layout ==================== */
+.layout-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.dashboard-card {
-  max-width: 800px;
-  margin: 0 auto;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.layout-logo-icon {
+  font-size: 32px;
+}
+
+.layout-logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.layout-header {
+  background: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.layout-trigger {
+  font-size: 18px;
+  padding: 0 12px;
+}
+
+.layout-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.layout-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.layout-user:hover {
+  background: #f5f5f5;
+}
+
+.layout-username {
+  font-weight: 500;
+}
+
+.layout-content {
+  margin: 24px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  min-height: calc(100vh - 64px - 48px);
+}
+
+/* Mobile responsive for layout */
+@media (max-width: 768px) {
+  .layout-username {
+    display: none;
+  }
+
+  .layout-content {
+    margin: 16px;
+    padding: 16px;
+  }
 }

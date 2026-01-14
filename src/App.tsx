@@ -6,6 +6,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { MainLayout } from './components/MainLayout'
 import './App.css'
 
 function App() {
@@ -18,23 +19,17 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Protected routes */}
+        {/* Protected routes with layout */}
         <Route
-          path="/"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <MainLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/change-password"
-          element={
-            <ProtectedRoute>
-              <ChangePasswordPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
