@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Button, Typography, Drawer, Divider } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Button, Typography, Drawer, Divider, Tooltip } from 'antd'
 import {
   HomeOutlined,
   UserOutlined,
@@ -11,9 +11,12 @@ import {
   MenuOutlined,
   DatabaseOutlined,
   AppstoreOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { useMe, useLogout } from '../api'
+import { useTheme } from '../contexts'
 
 const { Header, Sider, Content } = Layout
 const { Text } = Typography
@@ -28,6 +31,7 @@ export function MainLayout() {
   const location = useLocation()
   const { data: user } = useMe()
   const logout = useLogout()
+  const { themeMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     const handleResize = () => {
@@ -163,8 +167,8 @@ export function MainLayout() {
         placement="left"
         onClose={() => setMobileDrawerOpen(false)}
         open={mobileDrawerOpen}
-        width={250}
         styles={{
+          wrapper: { width: 250 },
           body: { padding: 0, background: '#001529' },
           header: { display: 'none' },
         }}
@@ -187,6 +191,14 @@ export function MainLayout() {
           />
 
           <div className="layout-header-right">
+            <Tooltip title={themeMode === 'light' ? 'Харанхуй горим' : 'Гэрэлтэй горим'}>
+              <Button
+                type="text"
+                icon={themeMode === 'light' ? <MoonOutlined /> : <SunOutlined />}
+                onClick={toggleTheme}
+                className="theme-toggle-btn"
+              />
+            </Tooltip>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <div className="layout-user">
                 <Avatar icon={<UserOutlined />} />

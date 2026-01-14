@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
 import type {
   ApiResponse,
-  PaginatedResponse,
+  AduunuudResponse,
   Aduu,
   AduuQueryParams,
   CreateAduuRequest,
@@ -14,7 +14,7 @@ import type {
 // ==================== API Functions ====================
 
 const getAduunuud = async (params?: AduuQueryParams) => {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<Aduu>>>('/aduu', { params })
+  const response = await apiClient.get<ApiResponse<AduunuudResponse>>('/aduu', { params })
   return response.data.data
 }
 

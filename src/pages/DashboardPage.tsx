@@ -1,11 +1,16 @@
-import { Card, Descriptions, Tag, Statistic, Row, Col, Typography, Avatar } from 'antd'
+import { Card, Descriptions, Tag, Statistic, Row, Col, Typography, Avatar, Spin } from 'antd'
 import { UserOutlined, TrophyOutlined } from '@ant-design/icons'
-import { useMe } from '../api'
+import { useMe, useAduunuud, useUulders } from '../api'
 
 const { Title, Text } = Typography
 
 export function DashboardPage() {
   const { data: user } = useMe()
+  const { data: aduuData, isLoading: aduuLoading } = useAduunuud({ limit: 1 })
+  const { data: uulders, isLoading: uulderLoading } = useUulders()
+
+  const totalAduu = aduuData?.pagination?.total ?? 0
+  const totalUulder = uulders?.length ?? 0
 
   return (
     <div>
@@ -32,28 +37,32 @@ export function DashboardPage() {
       <Row gutter={[16, 16]}>
         <Col xs={12} sm={12} lg={6}>
           <Card className="dashboard-stat-card" hoverable>
-            <Statistic
-              title="Нийт адуу"
-              value={0}
-              prefix={
-                <span className="dashboard-stat-icon" style={{ background: '#e6f7ff' }}>
-                  🐴
-                </span>
-              }
-            />
+            <Spin spinning={aduuLoading}>
+              <Statistic
+                title="Нийт адуу"
+                value={totalAduu}
+                prefix={
+                  <span className="dashboard-stat-icon" style={{ background: '#e6f7ff' }}>
+                    🐴
+                  </span>
+                }
+              />
+            </Spin>
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
           <Card className="dashboard-stat-card" hoverable>
-            <Statistic
-              title="Нийт үүлдэр"
-              value={0}
-              prefix={
-                <span className="dashboard-stat-icon" style={{ background: '#fff7e6' }}>
-                  📋
-                </span>
-              }
-            />
+            <Spin spinning={uulderLoading}>
+              <Statistic
+                title="Нийт үүлдэр"
+                value={totalUulder}
+                prefix={
+                  <span className="dashboard-stat-icon" style={{ background: '#fff7e6' }}>
+                    📋
+                  </span>
+                }
+              />
+            </Spin>
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
@@ -82,7 +91,7 @@ export function DashboardPage() {
         className="dashboard-user-card"
       >
         {user && (
-          <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ fontWeight: 500 }}>
+          <Descriptions column={{ xs: 1, sm: 2 }} styles={{ label: { fontWeight: 500 } }}>
             <Descriptions.Item label="Нэр">{user.name}</Descriptions.Item>
             <Descriptions.Item label="Имэйл">{user.email}</Descriptions.Item>
             <Descriptions.Item label="Эрх">
