@@ -834,12 +834,28 @@
   box-shadow: 0 4px 20px rgba(52, 152, 219, 0.3);
 }
 
-/* Gender-based border colors */
+/* Gender-based colors - Male (Азарга, Морь) */
 .family-tree-card .f3 .f3-horse-card[data-gender="male"] {
+  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%) !important;
+  border-color: #2980b9;
+  color: #fff;
+}
+
+/* Gender-based colors - Female (Гүү) */
+.family-tree-card .f3 .f3-horse-card[data-gender="female"] {
+  background: linear-gradient(135deg, #c44569 0%, #e84393 100%) !important;
+  border-color: #c44569;
+  color: #fff;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .family-tree-card .f3 .f3-horse-card[data-gender="male"] {
+  background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%) !important;
   border-color: #3498db;
 }
 
-.family-tree-card .f3 .f3-horse-card[data-gender="female"] {
+[data-theme='dark'] .family-tree-card .f3 .f3-horse-card[data-gender="female"] {
+  background: linear-gradient(135deg, #922b4d 0%, #c44569 100%) !important;
   border-color: #e84393;
 }
 
@@ -854,6 +870,8 @@
   flex-shrink: 0;
   color: #fff;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 /* Info section */
@@ -872,6 +890,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .family-tree-card .f3 .f3-horse-type {
@@ -884,6 +904,7 @@
   border-radius: 10px;
   display: inline-block;
   width: fit-content;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Hide default card background */

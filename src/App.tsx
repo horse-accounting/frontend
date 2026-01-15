@@ -7,6 +7,8 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { AduunuudPage } from './pages/AduunuudPage'
 import { AduuDetailPage } from './pages/AduuDetailPage'
+import { UulderPage } from './pages/UulderPage'
+import { AmjiltPage } from './pages/AmjiltPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { MainLayout } from './components/MainLayout'
 import './App.css'
@@ -32,6 +34,8 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/aduu" element={<AduunuudPage />} />
           <Route path="/aduu/:id" element={<AduuDetailPage />} />
+          <Route path="/uulder" element={<UulderPage />} />
+          <Route path="/amjilt" element={<AmjiltPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
 

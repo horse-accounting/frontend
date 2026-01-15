@@ -201,12 +201,14 @@ export function FamilyTree({ currentHorse, ancestors, descendants }: FamilyTreeP
         img_y: 0,
       })
       .setCardInnerHtmlCreator((d) => {
-        const huis = (d.data.huis as Huis) || 'mori'
-        const name = d.data['first name'] || 'Нэргүй'
+        // d.data contains the full node, d.data.data contains our custom data
+        const nodeData = d.data.data || d.data
+        const huis = (nodeData.huis as Huis) || 'mori'
+        const name = nodeData['first name'] || 'Нэргүй'
         const gender = getGenderConfig(huis)
         const label = huisLabels[huis]
         const isMain = d.data.id === String(currentHorse.id)
-        const zurag = d.data.zurag as string | undefined
+        const zurag = nodeData.zurag as string | undefined
         const genderClass = huis === 'guu' ? 'female' : 'male'
 
         // Image or emoji
@@ -215,13 +217,13 @@ export function FamilyTree({ currentHorse, ancestors, descendants }: FamilyTreeP
           : `<span style="font-size:28px;">${gender.emoji}</span>`
 
         return `
-          <div class="f3-horse-card ${isMain ? 'is-main' : ''}" data-gender="${genderClass}" style="background:${gender.bgColor};border-color:${gender.color};">
-            <div class="f3-horse-avatar" style="background:rgba(255,255,255,0.25);border:2px solid rgba(255,255,255,0.5);">
+          <div class="f3-horse-card ${isMain ? 'is-main' : ''}" data-gender="${genderClass}">
+            <div class="f3-horse-avatar">
               ${imageContent}
             </div>
             <div class="f3-horse-info">
-              <div class="f3-horse-name" style="color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3);">${name}</div>
-              <div class="f3-horse-type" style="background:rgba(255,255,255,0.2);color:#fff;">${label}</div>
+              <div class="f3-horse-name">${name}</div>
+              <div class="f3-horse-type">${label}</div>
             </div>
           </div>
         `
