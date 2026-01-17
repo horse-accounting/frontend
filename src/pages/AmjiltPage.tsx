@@ -2,18 +2,15 @@ import { useState } from 'react'
 import {
   Table,
   Button,
-  Select,
   Space,
   Card,
-  Row,
-  Col,
   Popconfirm,
   Typography,
   Tooltip,
   App,
-  Empty,
   Tag,
   Avatar,
+  Flex,
 } from 'antd'
 import {
   PlusOutlined,
@@ -24,10 +21,12 @@ import {
   EnvironmentOutlined,
   UserOutlined,
   CrownOutlined,
+  SwapOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { useAduunuud, useAmjiltuudByAduu, useDeleteAmjilt, type Amjilt } from '../api'
+import { useAmjiltuudByAduu, useDeleteAmjilt, type Amjilt, type Aduu } from '../api'
 import { AddEditAmjiltModal } from '../components/AddEditAmjiltModal'
+import { HorseSelectModal } from '../components/HorseSelectModal'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -45,26 +44,34 @@ const getMedalConfig = (bair: string) => {
   return { color: '#1890ff', bgColor: '#e6f7ff', borderColor: '#91d5ff', icon: '🏅', label: bair }
 }
 
+const huisLabel: Record<string, { label: string; color: string }> = {
+  azarga: { label: 'Азарга', color: 'blue' },
+  guu: { label: 'Гүү', color: 'magenta' },
+  mori: { label: 'Морь', color: 'green' },
+}
+
 export function AmjiltPage() {
-  const [selectedAduuId, setSelectedAduuId] = useState<number | undefined>()
+  const [selectedAduu, setSelectedAduu] = useState<Aduu | null>(null)
+  const [horseModalOpen, setHorseModalOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAmjilt, setEditingAmjilt] = useState<Amjilt | null>(null)
 
   const { message } = App.useApp()
 
-  const { data: aduunuudData, isLoading: aduunuudLoading } = useAduunuud({ limit: 100 })
-  const { data: amjiltuud, isLoading: amjiltuudLoading, refetch } = useAmjiltuudByAduu(selectedAduuId || 0)
-  const deleteAmjilt = useDeleteAmjilt(selectedAduuId || 0)
-
-  const aduunuud = aduunuudData?.aduunuud || []
+  const { data: amjiltuud, isLoading: amjiltuudLoading, refetch } = useAmjiltuudByAduu(selectedAduu?.id || 0)
+  const deleteAmjilt = useDeleteAmjilt(selectedAduu?.id || 0)
 
   const handleAdd = () => {
-    if (!selectedAduuId) {
+    if (!selectedAduu) {
       message.warning('Эхлээд адуу сонгоно уу')
       return
     }
     setEditingAmjilt(null)
     setModalOpen(true)
+  }
+
+  const handleSelectHorse = (aduu: Aduu) => {
+    setSelectedAduu(aduu)
   }
 
   const handleEdit = (amjilt: Amjilt) => {
@@ -217,8 +224,6 @@ export function AmjiltPage() {
     },
   ]
 
-  const selectedAduu = aduunuud.find(a => a.id === selectedAduuId)
-
   // Statistics
   const stats = amjiltuud ? {
     total: amjiltuud.length,
@@ -245,67 +250,99 @@ export function AmjiltPage() {
           icon={<PlusOutlined />}
           size="large"
           onClick={handleAdd}
-          disabled={!selectedAduuId}
+          disabled={!selectedAduu}
         >
           Амжилт нэмэх
         </Button>
       </div>
 
-      {/* Horse Selection */}
+      {/* Horse Selection Card */}
       <Card className="filter-card" size="small">
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={16} md={10} lg={8}>
-            <Select
-              placeholder="Адуу сонгох..."
-              allowClear
-              showSearch
-              optionFilterProp="label"
-              style={{ width: '100%' }}
+        {selectedAduu ? (
+          <Flex justify="space-between" align="center" wrap="wrap" gap={16}>
+            {/* Selected Horse Info */}
+            <Flex gap={16} align="center">
+              <Avatar
+                src={selectedAduu.zurag?.[0]}
+                size={64}
+                shape="square"
+                style={{ borderRadius: 12, flexShrink: 0 }}
+              >
+                🐴
+              </Avatar>
+              <div>
+                <Flex align="center" gap={8}>
+                  <Text strong style={{ fontSize: 18 }}>{selectedAduu.ner}</Text>
+                  <Tag color={huisLabel[selectedAduu.huis]?.color}>
+                    {huisLabel[selectedAduu.huis]?.label}
+                  </Tag>
+                </Flex>
+                <Flex gap={12} style={{ marginTop: 4 }}>
+                  {selectedAduu.uulder && (
+                    <Text type="secondary">{selectedAduu.uulder.name}</Text>
+                  )}
+                  {selectedAduu.tursunOn && (
+                    <Text type="secondary">{selectedAduu.tursunOn} он</Text>
+                  )}
+                  {selectedAduu.zus && (
+                    <Text type="secondary">{selectedAduu.zus}</Text>
+                  )}
+                </Flex>
+              </div>
+            </Flex>
+
+            {/* Stats & Change Button */}
+            <Flex gap={24} align="center" wrap="wrap">
+              {stats && stats.total > 0 && (
+                <Space size={16}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <TrophyOutlined style={{ color: '#faad14', fontSize: 18 }} />
+                    <Text strong>{stats.total}</Text>
+                    <Text type="secondary">нийт</Text>
+                  </div>
+                  {stats.gold > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>🥇</span>
+                      <Text strong style={{ color: '#d4a00a' }}>{stats.gold}</Text>
+                    </div>
+                  )}
+                  {stats.silver > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>🥈</span>
+                      <Text strong style={{ color: '#8c8c8c' }}>{stats.silver}</Text>
+                    </div>
+                  )}
+                  {stats.bronze > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>🥉</span>
+                      <Text strong style={{ color: '#cd7f32' }}>{stats.bronze}</Text>
+                    </div>
+                  )}
+                </Space>
+              )}
+              <Button icon={<SwapOutlined />} onClick={() => setHorseModalOpen(true)}>
+                Өөр адуу
+              </Button>
+            </Flex>
+          </Flex>
+        ) : (
+          <Flex justify="center" align="center" style={{ padding: '24px 0' }}>
+            <Button
+              type="dashed"
               size="large"
-              loading={aduunuudLoading}
-              value={selectedAduuId}
-              onChange={setSelectedAduuId}
-              options={aduunuud.map((aduu) => ({
-                value: aduu.id,
-                label: `${aduu.ner} (${aduu.huis === 'azarga' ? 'Азарга' : aduu.huis === 'guu' ? 'Гүү' : 'Морь'})`,
-              }))}
-            />
-          </Col>
-          {stats && stats.total > 0 && (
-            <Col xs={24} sm={24} md={14} lg={16}>
-              <Space size={16} wrap>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <TrophyOutlined style={{ color: '#faad14', fontSize: 18 }} />
-                  <Text strong>{stats.total}</Text>
-                  <Text type="secondary">нийт</Text>
-                </div>
-                {stats.gold > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>🥇</span>
-                    <Text strong style={{ color: '#d4a00a' }}>{stats.gold}</Text>
-                  </div>
-                )}
-                {stats.silver > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>🥈</span>
-                    <Text strong style={{ color: '#8c8c8c' }}>{stats.silver}</Text>
-                  </div>
-                )}
-                {stats.bronze > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>🥉</span>
-                    <Text strong style={{ color: '#cd7f32' }}>{stats.bronze}</Text>
-                  </div>
-                )}
-              </Space>
-            </Col>
-          )}
-        </Row>
+              icon={<PlusOutlined />}
+              onClick={() => setHorseModalOpen(true)}
+              style={{ height: 'auto', padding: '16px 32px' }}
+            >
+              <span style={{ marginLeft: 8 }}>Адуу сонгох</span>
+            </Button>
+          </Flex>
+        )}
       </Card>
 
       {/* Table */}
       <Card className="table-card" styles={{ body: { padding: 0 } }}>
-        {!selectedAduuId ? (
+        {!selectedAduu ? (
           <div style={{ padding: '64px 24px', textAlign: 'center' }}>
             <TrophyOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
             <Title level={5} type="secondary" style={{ margin: 0, marginBottom: 8 }}>
@@ -355,11 +392,20 @@ export function AmjiltPage() {
         )}
       </Card>
 
-      {selectedAduuId && (
+      {/* Horse Select Modal */}
+      <HorseSelectModal
+        open={horseModalOpen}
+        selectedId={selectedAduu?.id}
+        onSelect={handleSelectHorse}
+        onClose={() => setHorseModalOpen(false)}
+      />
+
+      {/* Add/Edit Achievement Modal */}
+      {selectedAduu && (
         <AddEditAmjiltModal
           open={modalOpen}
           amjilt={editingAmjilt}
-          aduuId={selectedAduuId}
+          aduuId={selectedAduu.id}
           onClose={handleModalClose}
           onSuccess={() => {
             handleModalClose()
