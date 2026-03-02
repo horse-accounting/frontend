@@ -45,9 +45,8 @@ const getMedalConfig = (bair: string) => {
 }
 
 const huisLabel: Record<string, { label: string; color: string }> = {
-  azarga: { label: 'Азарга', color: 'blue' },
-  guu: { label: 'Гүү', color: 'magenta' },
-  mori: { label: 'Морь', color: 'green' },
+  er: { label: 'Эр', color: 'blue' },
+  em: { label: 'Эм', color: 'magenta' },
 }
 
 export function AmjiltPage() {
