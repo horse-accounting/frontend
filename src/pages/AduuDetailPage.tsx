@@ -17,6 +17,7 @@ import {
 import {
   ArrowLeftOutlined,
   EditOutlined,
+  FilePdfOutlined,
   EnvironmentOutlined,
   ManOutlined,
   WomanOutlined,
@@ -26,7 +27,7 @@ import {
   TrophyOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons'
-import { useAduu, useFamilyTree, type Huis } from '../api'
+import { useAduu, useFamilyTree, useDownloadAduuPdf, type Huis } from '../api'
 import { useState } from 'react'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
 import { FamilyTree } from '../components/FamilyTree'
@@ -34,15 +35,13 @@ import { FamilyTree } from '../components/FamilyTree'
 const { Title, Text, Paragraph } = Typography
 
 const huisLabels: Record<Huis, string> = {
-  azarga: 'Азарга',
-  guu: 'Гүү',
-  mori: 'Морь',
+  er: 'Эр',
+  em: 'Эм',
 }
 
 const huisColors: Record<Huis, string> = {
-  azarga: 'blue',
-  guu: 'magenta',
-  mori: 'green',
+  er: 'blue',
+  em: 'magenta',
 }
 
 const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGY1ZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI2NCI+8J+QtDwvdGV4dD48L3N2Zz4='
@@ -57,6 +56,7 @@ export function AduuDetailPage() {
   const aduuId = Number(id)
   const { data: aduu, isLoading, error, refetch } = useAduu(aduuId)
   const { data: familyTree } = useFamilyTree(aduuId)
+  const downloadPdf = useDownloadAduuPdf()
 
   if (isLoading) {
     return (
@@ -86,6 +86,22 @@ export function AduuDetailPage() {
     setModalOpen(true)
   }
 
+  const handleDownloadPdf = () => {
+    downloadPdf.mutate(aduuId, {
+      onSuccess: (blob) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${aduu?.ner || 'aduu'}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+      },
+      onError: () => {
+        message.error('PDF татахад алдаа гарлаа')
+      },
+    })
+  }
+
   const handleModalClose = () => {
     setModalOpen(false)
   }
@@ -110,9 +126,18 @@ export function AduuDetailPage() {
         >
           Буцах
         </Button>
-        <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
-          Засах
-        </Button>
+        <Space>
+          <Button
+            icon={<FilePdfOutlined />}
+            onClick={handleDownloadPdf}
+            loading={downloadPdf.isPending}
+          >
+            PDF татах
+          </Button>
+          <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
+            Засах
+          </Button>
+        </Space>
       </div>
 
       {/* Hero Section */}
@@ -145,6 +170,9 @@ export function AduuDetailPage() {
                   {aduu.uulder && (
                     <Tag style={{ fontSize: 14, padding: '4px 12px' }}>{aduu.uulder.name}</Tag>
                   )}
+                  {aduu.buleg && (
+                    <Tag color="cyan" style={{ fontSize: 14, padding: '4px 12px' }}>{aduu.buleg.name}</Tag>
+                  )}
                   {aduu.uraldsan && (
                     <Tag color="gold" icon={<TrophyOutlined />} style={{ fontSize: 14, padding: '4px 12px' }}>
                       Уралдсан
@@ -173,6 +201,7 @@ export function AduuDetailPage() {
                     <Statistic
                       title="Төрсөн он"
                       value={aduu.tursunOn}
+                      groupSeparator=""
                       styles={{ content: { fontSize: 20 } }}
                     />
                   </Col>
@@ -286,7 +315,7 @@ export function AduuDetailPage() {
                     <ManOutlined />
                   </div>
                   <div className="detail-parent-info">
-                    <Text type="secondary">Эцэг (Азарга)</Text>
+                    <Text type="secondary">Эцэг (Эр)</Text>
                     <Text strong style={{ fontSize: 16 }}>{aduu.father?.ner || '—'}</Text>
                     {aduu.father && (
                       <Text type="secondary" style={{ fontSize: 12 }}>
@@ -306,7 +335,7 @@ export function AduuDetailPage() {
                     <WomanOutlined />
                   </div>
                   <div className="detail-parent-info">
-                    <Text type="secondary">Эх (Гүү)</Text>
+                    <Text type="secondary">Эх (Эм)</Text>
                     <Text strong style={{ fontSize: 16 }}>{aduu.mother?.ner || '—'}</Text>
                     {aduu.mother && (
                       <Text type="secondary" style={{ fontSize: 12 }}>
@@ -348,20 +377,6 @@ export function AduuDetailPage() {
                 ))}
               </Row>
             </Card>
-          )}
-
-          {/* Family Tree */}
-          {familyTree && (
-            <FamilyTree
-              currentHorse={{
-                id: aduu.id,
-                ner: aduu.ner,
-                huis: aduu.huis,
-                zurag: aduu.zurag,
-              }}
-              ancestors={familyTree.ancestors}
-              descendants={familyTree.descendants}
-            />
           )}
 
           {/* Achievements */}
@@ -410,6 +425,20 @@ export function AduuDetailPage() {
           )}
         </Col>
       </Row>
+
+      {/* Family Tree - Full width at bottom */}
+      {familyTree && (
+        <FamilyTree
+          currentHorse={{
+            id: aduu.id,
+            ner: aduu.ner,
+            huis: aduu.huis,
+            zurag: aduu.zurag,
+          }}
+          ancestors={familyTree.ancestors}
+          descendants={familyTree.descendants}
+        />
+      )}
 
       <AddEditAduuModal
         open={modalOpen}

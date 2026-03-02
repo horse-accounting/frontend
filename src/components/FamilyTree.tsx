@@ -1,10 +1,12 @@
-import { useEffect, useRef, useMemo } from 'react'
-import { Card, Empty } from 'antd'
-import * as f3 from 'family-chart'
-import 'family-chart/styles/family-chart.css'
-import type { AncestorNode, DescendantNode, Huis } from '../api'
-import type { Datum } from 'family-chart'
+import { useRef, useState, useCallback } from 'react'
+import { Card, Empty, Button, Tooltip } from 'antd'
+import {
+  ZoomInOutlined,
+  ZoomOutOutlined,
+  ExpandOutlined,
+} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import type { AncestorNode, DescendantNode, Huis } from '../api'
 
 interface FamilyTreeProps {
   currentHorse: {
@@ -20,232 +22,157 @@ interface FamilyTreeProps {
   descendants: DescendantNode[]
 }
 
-// Huis labels
 const huisLabels: Record<Huis, string> = {
-  azarga: 'Азарга',
-  guu: 'Гүү',
-  mori: 'Морь',
+  er: 'Эр',
+  em: 'Эм',
 }
 
-// Gender-based colors (эр = male, эм = female)
-const genderConfig = {
-  male: {
-    emoji: '♂',
-    color: '#3498db',
-    bgColor: 'linear-gradient(135deg, #2980b9 0%, #3498db 100%)'
-  },
-  female: {
-    emoji: '♀',
-    color: '#e84393',
-    bgColor: 'linear-gradient(135deg, #c44569 0%, #e84393 100%)'
-  },
+// ==================== Horse Node Card ====================
+
+function HorseNode({
+  id,
+  ner,
+  huis,
+  isMain,
+  currentId,
+}: {
+  id: number
+  ner: string
+  huis: Huis
+  isMain?: boolean
+  currentId: number
+}) {
+  const navigate = useNavigate()
+  const isMale = huis === 'er'
+
+  return (
+    <div
+      className={`ft-node ${isMale ? 'ft-male' : 'ft-female'} ${isMain ? 'ft-main' : ''}`}
+      onClick={() => {
+        if (id !== currentId) navigate(`/aduu/${id}`)
+      }}
+      style={{ cursor: id !== currentId ? 'pointer' : 'default' }}
+    >
+      <div className="ft-node-emoji">{isMale ? '♂' : '♀'}</div>
+      <div className="ft-node-info">
+        <div className="ft-node-name">{ner}</div>
+        <div className="ft-node-huis">{huisLabels[huis]}</div>
+      </div>
+    </div>
+  )
 }
 
-// Get gender config based on huis
-function getGenderConfig(huis: Huis) {
-  return huis === 'guu' ? genderConfig.female : genderConfig.male
-}
+// ==================== Ancestor Tree (bottom-up) ====================
 
-// Convert huis to gender for family-chart
-function huisToGender(huis: Huis): 'M' | 'F' {
-  return huis === 'guu' ? 'F' : 'M'
-}
-
-// Build flat data array from tree structure
-function buildFamilyData(
-  currentHorse: FamilyTreeProps['currentHorse'],
-  ancestors: FamilyTreeProps['ancestors'],
-  descendants: DescendantNode[]
-): Datum[] {
-  const nodes: Map<string, Datum> = new Map()
-
-  // Add current horse
-  const currentId = String(currentHorse.id)
-  const currentNode: Datum = {
-    id: currentId,
-    data: {
-      'first name': currentHorse.ner,
-      gender: huisToGender(currentHorse.huis),
-      huis: currentHorse.huis,
-      zurag: currentHorse.zurag?.[0] || '',
-    },
-    rels: {
-      spouses: [],
-      children: [],
-      parents: [],
-    },
-  }
-  nodes.set(currentId, currentNode)
-
-  // Process ancestors recursively
-  function processAncestor(ancestor: AncestorNode | undefined, childId: string): void {
-    if (!ancestor) return
-
-    const ancestorId = String(ancestor.id)
-
-    if (!nodes.has(ancestorId)) {
-      nodes.set(ancestorId, {
-        id: ancestorId,
-        data: {
-          'first name': ancestor.ner,
-          gender: huisToGender(ancestor.huis),
-          huis: ancestor.huis,
-        },
-        rels: {
-          spouses: [],
-          children: [childId],
-          parents: [],
-        },
-      })
-    } else {
-      const existingNode = nodes.get(ancestorId)!
-      if (!existingNode.rels.children.includes(childId)) {
-        existingNode.rels.children.push(childId)
-      }
-    }
-
-    // Add parent reference to child
-    const childNode = nodes.get(childId)
-    if (childNode && !childNode.rels.parents.includes(ancestorId)) {
-      childNode.rels.parents.push(ancestorId)
-    }
-
-    // Process grandparents
-    if (ancestor.father || ancestor.mother) {
-      processAncestor(ancestor.father, ancestorId)
-      processAncestor(ancestor.mother, ancestorId)
-    }
+function AncestorBranch({
+  node,
+  currentId,
+}: {
+  node?: AncestorNode
+  currentId: number
+}) {
+  if (!node) {
+    return (
+      <div className="ft-ancestor-branch">
+        <div className="ft-node ft-empty">
+          <div className="ft-node-emoji">?</div>
+          <div className="ft-node-info">
+            <div className="ft-node-name">Тодорхойгүй</div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  // Process father and mother lines
-  processAncestor(ancestors.father, currentId)
-  processAncestor(ancestors.mother, currentId)
+  const hasParents = node.father || node.mother
 
-  // Process descendants recursively
-  function processDescendant(descendant: DescendantNode, parentId: string): void {
-    const descendantId = String(descendant.id)
-
-    if (!nodes.has(descendantId)) {
-      nodes.set(descendantId, {
-        id: descendantId,
-        data: {
-          'first name': descendant.ner,
-          gender: huisToGender(descendant.huis),
-          huis: descendant.huis,
-        },
-        rels: {
-          spouses: [],
-          children: [],
-          parents: [parentId],
-        },
-      })
-    }
-
-    // Add child reference to parent
-    const parentNode = nodes.get(parentId)
-    if (parentNode && !parentNode.rels.children.includes(descendantId)) {
-      parentNode.rels.children.push(descendantId)
-    }
-
-    // Process grandchildren
-    if (descendant.children && descendant.children.length > 0) {
-      descendant.children.forEach((child) => {
-        processDescendant(child, descendantId)
-      })
-    }
-  }
-
-  descendants.forEach((child) => {
-    processDescendant(child, currentId)
-  })
-
-  return Array.from(nodes.values())
+  return (
+    <div className="ft-ancestor-branch">
+      {hasParents && (
+        <div className="ft-ancestor-parents">
+          <AncestorBranch node={node.father} currentId={currentId} />
+          <AncestorBranch node={node.mother} currentId={currentId} />
+        </div>
+      )}
+      <div className="ft-ancestor-self">
+        <HorseNode id={node.id} ner={node.ner} huis={node.huis} currentId={currentId} />
+      </div>
+    </div>
+  )
 }
+
+// ==================== Descendant Tree (top-down) ====================
+
+function DescendantBranch({
+  node,
+  currentId,
+}: {
+  node: DescendantNode
+  currentId: number
+}) {
+  const hasChildren = node.children && node.children.length > 0
+
+  return (
+    <div className="ft-descendant-branch">
+      <div className="ft-descendant-self">
+        <HorseNode id={node.id} ner={node.ner} huis={node.huis} currentId={currentId} />
+      </div>
+      {hasChildren && (
+        <div className="ft-descendant-children">
+          {node.children!.map((child) => (
+            <DescendantBranch key={child.id} node={child} currentId={currentId} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ==================== Main Component ====================
+
+const MIN_ZOOM = 0.3
+const MAX_ZOOM = 2
+const ZOOM_STEP = 0.15
 
 export function FamilyTree({ currentHorse, ancestors, descendants }: FamilyTreeProps) {
-  const chartRef = useRef<HTMLDivElement>(null)
-  const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [zoom, setZoom] = useState(0.85)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
+  const dragStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 })
 
   const hasAncestors = ancestors.father || ancestors.mother
   const hasDescendants = descendants.length > 0
 
-  // Build family data
-  const familyData = useMemo(() => {
-    if (!hasAncestors && !hasDescendants) return []
-    return buildFamilyData(currentHorse, ancestors, descendants)
-  }, [currentHorse, ancestors, descendants, hasAncestors, hasDescendants])
+  const handleZoomIn = () => setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM))
+  const handleZoomOut = () => setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM))
+  const handleReset = () => {
+    setZoom(0.85)
+    setPan({ x: 0, y: 0 })
+  }
 
-  useEffect(() => {
-    const container = chartRef.current
-    if (!container || familyData.length === 0) return
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
+    setZoom((z) => Math.min(Math.max(z + delta, MIN_ZOOM), MAX_ZOOM))
+  }, [])
 
-    // Clear previous chart
-    container.innerHTML = ''
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return
+    setDragging(true)
+    dragStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y }
+  }, [pan])
 
-    // Create chart
-    const chart = f3.createChart(container, familyData)
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragging) return
+    const dx = e.clientX - dragStart.current.x
+    const dy = e.clientY - dragStart.current.y
+    setPan({ x: dragStart.current.panX + dx, y: dragStart.current.panY + dy })
+  }, [dragging])
 
-    // Set up HTML card with custom template
-    chart.setCardHtml()
-      .setCardDisplay([['first name']])
-      .setMiniTree(true)
-      .setStyle('rect')
-      .setCardDim({
-        w: 180,
-        h: 80,
-        text_x: 90,
-        text_y: 20,
-        img_w: 0,
-        img_h: 0,
-        img_x: 0,
-        img_y: 0,
-      })
-      .setCardInnerHtmlCreator((d) => {
-        // d.data contains the full node, d.data.data contains our custom data
-        const nodeData = d.data.data || d.data
-        const huis = (nodeData.huis as Huis) || 'mori'
-        const name = nodeData['first name'] || 'Нэргүй'
-        const gender = getGenderConfig(huis)
-        const label = huisLabels[huis]
-        const isMain = d.data.id === String(currentHorse.id)
-        const zurag = nodeData.zurag as string | undefined
-        const genderClass = huis === 'guu' ? 'female' : 'male'
-
-        // Image or emoji
-        const imageContent = zurag
-          ? `<img src="${zurag}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:24px;">🐴</span>`
-          : `<span style="font-size:28px;">${gender.emoji}</span>`
-
-        return `
-          <div class="f3-horse-card ${isMain ? 'is-main' : ''}" data-gender="${genderClass}">
-            <div class="f3-horse-avatar">
-              ${imageContent}
-            </div>
-            <div class="f3-horse-info">
-              <div class="f3-horse-name">${name}</div>
-              <div class="f3-horse-type">${label}</div>
-            </div>
-          </div>
-        `
-      })
-      .setOnCardClick((_e: MouseEvent, d: { data: { id?: string } }) => {
-        const nodeId = d.data?.id
-        if (nodeId && nodeId !== String(currentHorse.id)) {
-          navigate(`/aduu/${nodeId}`)
-        }
-      })
-
-    // Update main person and render tree
-    chart.updateMainId(String(currentHorse.id))
-    chart.setTransitionTime(400)
-    chart.updateTree({ initial: true })
-
-    return () => {
-      if (container) {
-        container.innerHTML = ''
-      }
-    }
-  }, [familyData, currentHorse.id, navigate])
+  const handleMouseUp = useCallback(() => {
+    setDragging(false)
+  }, [])
 
   if (!hasAncestors && !hasDescendants) {
     return (
@@ -256,16 +183,76 @@ export function FamilyTree({ currentHorse, ancestors, descendants }: FamilyTreeP
   }
 
   return (
-    <Card title="🌳 Ургын мод" size="small" className="family-tree-card">
+    <Card
+      title="🌳 Ургын мод"
+      size="small"
+      className="family-tree-card"
+      extra={
+        <div style={{ display: 'flex', gap: 4 }}>
+          <Tooltip title="Томруулах">
+            <Button size="small" icon={<ZoomInOutlined />} onClick={handleZoomIn} />
+          </Tooltip>
+          <Tooltip title="Жижигрүүлэх">
+            <Button size="small" icon={<ZoomOutOutlined />} onClick={handleZoomOut} />
+          </Tooltip>
+          <Tooltip title="Анхны байрлал">
+            <Button size="small" icon={<ExpandOutlined />} onClick={handleReset} />
+          </Tooltip>
+          <span style={{ fontSize: 12, lineHeight: '24px', marginLeft: 4, color: '#999' }}>
+            {Math.round(zoom * 100)}%
+          </span>
+        </div>
+      }
+    >
       <div
-        ref={chartRef}
-        className="f3"
-        style={{
-          width: '100%',
-          height: '500px',
-          minHeight: '400px',
-        }}
-      />
+        ref={containerRef}
+        className="ft-viewport"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{ cursor: dragging ? 'grabbing' : 'grab' }}
+      >
+        <div
+          className="ft-canvas"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          }}
+        >
+          {/* Ancestors section */}
+          {hasAncestors && (
+            <div className="ft-ancestors">
+              <div className="ft-ancestor-parents">
+                <AncestorBranch node={ancestors.father} currentId={currentHorse.id} />
+                <AncestorBranch node={ancestors.mother} currentId={currentHorse.id} />
+              </div>
+            </div>
+          )}
+
+          {/* Current horse */}
+          <div className="ft-current">
+            <HorseNode
+              id={currentHorse.id}
+              ner={currentHorse.ner}
+              huis={currentHorse.huis}
+              isMain
+              currentId={currentHorse.id}
+            />
+          </div>
+
+          {/* Descendants section */}
+          {hasDescendants && (
+            <div className="ft-descendants">
+              <div className="ft-descendant-children">
+                {descendants.map((child) => (
+                  <DescendantBranch key={child.id} node={child} currentId={currentHorse.id} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </Card>
   )
 }

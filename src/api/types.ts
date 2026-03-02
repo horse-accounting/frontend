@@ -82,6 +82,11 @@ export interface ChangePasswordRequest {
   newPassword: string
 }
 
+export interface UpdateProfileRequest {
+  name?: string
+  email?: string
+}
+
 // ==================== Users Admin Types ====================
 
 export interface UsersQueryParams {
@@ -131,9 +136,29 @@ export interface UpdateUulderRequest {
   description?: string
 }
 
+// ==================== Buleg (Group/Lineage) Types ====================
+
+export interface Buleg {
+  id: number
+  name: string
+  description?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateBulegRequest {
+  name: string
+  description?: string
+}
+
+export interface UpdateBulegRequest {
+  name?: string
+  description?: string
+}
+
 // ==================== Aduu (Horse) Types ====================
 
-export type Huis = 'azarga' | 'guu' | 'mori'
+export type Huis = 'er' | 'em'
 
 export interface Aduu {
   id: number
@@ -151,6 +176,8 @@ export interface Aduu {
   zurag: string[]
   uulderId?: number
   uulder?: Uulder
+  bulegId?: number
+  buleg?: Buleg
   fatherId?: number
   father?: Aduu
   motherId?: number
@@ -168,6 +195,7 @@ export interface AduuQueryParams {
   search?: string
   huis?: Huis
   uulderId?: number
+  bulegId?: number
   uraldsan?: boolean
   tursunOnMin?: number
   tursunOnMax?: number
@@ -187,6 +215,7 @@ export interface CreateAduuRequest {
   tailbar?: string
   zurag?: string[]
   uulderId?: number
+  bulegId?: number
   fatherId?: number
   motherId?: number
 }
@@ -205,6 +234,7 @@ export interface UpdateAduuRequest {
   tailbar?: string
   zurag?: string[]
   uulderId?: number
+  bulegId?: number
   fatherId?: number
   motherId?: number
 }

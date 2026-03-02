@@ -43,6 +43,16 @@ const deleteAduu = async (id: number) => {
   return response.data
 }
 
+const downloadAduuPdf = async (id: number) => {
+  const response = await apiClient.get(`/aduu/${id}/pdf`, { responseType: 'blob' })
+  return response.data as Blob
+}
+
+const exportAduuExcel = async (params?: AduuQueryParams) => {
+  const response = await apiClient.get('/aduu/export/excel', { params, responseType: 'blob' })
+  return response.data as Blob
+}
+
 // ==================== Query Keys ====================
 
 export const aduuKeys = {
@@ -101,6 +111,18 @@ export const useUpdateAduu = () => {
       queryClient.setQueryData(aduuKeys.detail(aduu.id), aduu)
       queryClient.invalidateQueries({ queryKey: aduuKeys.familyTrees() })
     },
+  })
+}
+
+export const useDownloadAduuPdf = () => {
+  return useMutation({
+    mutationFn: downloadAduuPdf,
+  })
+}
+
+export const useExportAduuExcel = () => {
+  return useMutation({
+    mutationFn: exportAduuExcel,
   })
 }
 

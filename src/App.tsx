@@ -3,12 +3,13 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
-import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { AduunuudPage } from './pages/AduunuudPage'
 import { AduuDetailPage } from './pages/AduuDetailPage'
 import { UulderPage } from './pages/UulderPage'
 import { AmjiltPage } from './pages/AmjiltPage'
+import { BulegPage } from './pages/BulegPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { MainLayout } from './components/MainLayout'
 import './App.css'
@@ -35,8 +36,9 @@ function App() {
           <Route path="/aduu" element={<AduunuudPage />} />
           <Route path="/aduu/:id" element={<AduuDetailPage />} />
           <Route path="/uulder" element={<UulderPage />} />
+          <Route path="/buleg" element={<BulegPage />} />
           <Route path="/amjilt" element={<AmjiltPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         {/* Fallback */}
