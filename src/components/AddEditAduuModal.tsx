@@ -30,6 +30,7 @@ import {
   useCreateAduu,
   useUpdateAduu,
   useUulders,
+  useBulegs,
   useAduunuud,
   useUploadImages,
   useDeleteImage,
@@ -56,9 +57,8 @@ interface AddEditAduuModalProps {
 }
 
 const huisOptions: { value: Huis; label: string }[] = [
-  { value: 'azarga', label: 'Азарга' },
-  { value: 'guu', label: 'Гүү' },
-  { value: 'mori', label: 'Морь' },
+  { value: 'er', label: 'Эр' },
+  { value: 'em', label: 'Эм' },
 ]
 
 const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
@@ -82,6 +82,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
   const { message } = App.useApp()
 
   const { data: uulders } = useUulders()
+  const { data: bulegs } = useBulegs()
   const { data: aduunuudData } = useAduunuud({ limit: 100 })
   const createAduu = useCreateAduu()
   const updateAduu = useUpdateAduu()
@@ -106,6 +107,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
           uraldsan: aduu.uraldsan,
           tailbar: aduu.tailbar,
           uulderId: aduu.uulderId,
+          bulegId: aduu.bulegId,
           fatherId: aduu.fatherId,
           motherId: aduu.motherId,
         })
@@ -198,13 +200,13 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
 
   const isLoading = createAduu.isPending || updateAduu.isPending
 
-  // Filter for father (azarga only) and mother (guu only)
+  // Filter for father (er only) and mother (em only)
   const fatherOptions = aduunuud
-    .filter((a) => a.huis === 'azarga' && a.id !== aduu?.id)
+    .filter((a) => a.huis === 'er' && a.id !== aduu?.id)
     .map((a) => ({ value: a.id, label: a.ner }))
 
   const motherOptions = aduunuud
-    .filter((a) => a.huis === 'guu' && a.id !== aduu?.id)
+    .filter((a) => a.huis === 'em' && a.id !== aduu?.id)
     .map((a) => ({ value: a.id, label: a.ner }))
 
   const uploadButton = (
@@ -374,6 +376,18 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
+            <Form.Item name="bulegId" label="Бүлэг">
+              <Select
+                placeholder="Бүлэг сонгох"
+                allowClear
+                options={bulegs?.map((b) => ({ value: b.id, label: b.name }))}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
             <Form.Item name="zus" label="Зүс">
               <Input placeholder="Хүрэн, Халтар, Хар гэх мэт" />
             </Form.Item>
@@ -414,7 +428,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
         <SectionHeader icon={<TeamOutlined />} title="Удам угсаа" />
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item name="fatherId" label="Эцэг (Азарга)">
+            <Form.Item name="fatherId" label="Эцэг (Эр)">
               <Select
                 placeholder="Эцэг сонгох"
                 allowClear
@@ -425,7 +439,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item name="motherId" label="Эх (Гүү)">
+            <Form.Item name="motherId" label="Эх (Эм)">
               <Select
                 placeholder="Эх сонгох"
                 allowClear

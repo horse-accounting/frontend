@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Button, Typography, Drawer, Divider, Tooltip } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Button, Typography, Drawer, Tooltip } from 'antd'
 import {
   HomeOutlined,
   UserOutlined,
   LogoutOutlined,
-  KeyOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   TrophyOutlined,
   MenuOutlined,
   DatabaseOutlined,
   AppstoreOutlined,
+  GroupOutlined,
   SunOutlined,
   MoonOutlined,
 } from '@ant-design/icons'
@@ -69,6 +69,11 @@ export function MainLayout() {
       label: 'Үүлдэрүүд',
     },
     {
+      key: '/buleg',
+      icon: <GroupOutlined />,
+      label: 'Бүлэг',
+    },
+    {
       key: '/amjilt',
       icon: <TrophyOutlined />,
       label: 'Амжилтууд',
@@ -77,10 +82,10 @@ export function MainLayout() {
 
   const userMenuItems = [
     {
-      key: 'change-password',
-      icon: <KeyOutlined />,
-      label: 'Нууц үг солих',
-      onClick: () => navigate('/change-password'),
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Профайл',
+      onClick: () => navigate('/profile'),
     },
     {
       type: 'divider' as const,
@@ -116,26 +121,6 @@ export function MainLayout() {
           onClick={({ key }) => handleMenuClick(key)}
           className="sidebar-menu"
         />
-      </div>
-
-      {/* User section at bottom */}
-      <div className="sidebar-user-section">
-        <Divider style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
-        <div className="sidebar-user" onClick={() => handleMenuClick('/change-password')}>
-          <Avatar
-            size={collapsed && !isMobile ? 32 : 36}
-            icon={<UserOutlined />}
-            className="sidebar-user-avatar"
-          />
-          {(!collapsed || isMobile) && (
-            <div className="sidebar-user-info">
-              <Text className="sidebar-user-name">{user?.name}</Text>
-              <Text className="sidebar-user-role">
-                {user?.role === 'admin' ? 'Админ' : 'Хэрэглэгч'}
-              </Text>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )

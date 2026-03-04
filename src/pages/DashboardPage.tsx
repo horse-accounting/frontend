@@ -22,15 +22,13 @@ const getGreeting = () => {
 }
 
 const huisLabels: Record<Huis, string> = {
-  azarga: 'Азарга',
-  guu: 'Гүү',
-  mori: 'Морь',
+  er: 'Эр',
+  em: 'Эм',
 }
 
 const huisColors: Record<Huis, string> = {
-  azarga: 'blue',
-  guu: 'magenta',
-  mori: 'green',
+  er: 'blue',
+  em: 'magenta',
 }
 
 export function DashboardPage() {
@@ -45,9 +43,8 @@ export function DashboardPage() {
   const totalAmjilt = aduunuud.reduce((sum, aduu) => sum + (aduu.amjiltuud?.length ?? 0), 0)
 
   // Statistics by huis
-  const azargaCount = aduunuud.filter(a => a.huis === 'azarga').length
-  const guuCount = aduunuud.filter(a => a.huis === 'guu').length
-  const moriCount = aduunuud.filter(a => a.huis === 'mori').length
+  const erCount = aduunuud.filter(a => a.huis === 'er').length
+  const emCount = aduunuud.filter(a => a.huis === 'em').length
 
   // Recent horses (last 5)
   const recentHorses = [...aduunuud]
@@ -234,12 +231,12 @@ export function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <Space>
                       <ManOutlined style={{ color: '#1890ff' }} />
-                      <Text>Азарга</Text>
+                      <Text>Эр</Text>
                     </Space>
-                    <Text strong>{azargaCount}</Text>
+                    <Text strong>{erCount}</Text>
                   </div>
                   <Progress
-                    percent={totalAduu ? Math.round((azargaCount / totalAduu) * 100) : 0}
+                    percent={totalAduu ? Math.round((erCount / totalAduu) * 100) : 0}
                     strokeColor="#1890ff"
                     showInfo={false}
                   />
@@ -248,27 +245,13 @@ export function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <Space>
                       <WomanOutlined style={{ color: '#eb2f96' }} />
-                      <Text>Гүү</Text>
+                      <Text>Эм</Text>
                     </Space>
-                    <Text strong>{guuCount}</Text>
+                    <Text strong>{emCount}</Text>
                   </div>
                   <Progress
-                    percent={totalAduu ? Math.round((guuCount / totalAduu) * 100) : 0}
+                    percent={totalAduu ? Math.round((emCount / totalAduu) * 100) : 0}
                     strokeColor="#eb2f96"
-                    showInfo={false}
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space>
-                      <span>🐎</span>
-                      <Text>Морь</Text>
-                    </Space>
-                    <Text strong>{moriCount}</Text>
-                  </div>
-                  <Progress
-                    percent={totalAduu ? Math.round((moriCount / totalAduu) * 100) : 0}
-                    strokeColor="#52c41a"
                     showInfo={false}
                   />
                 </div>

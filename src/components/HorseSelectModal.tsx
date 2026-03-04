@@ -23,9 +23,8 @@ interface HorseSelectModalProps {
 }
 
 const huisConfig: Record<string, { label: string; color: string; emoji: string }> = {
-  azarga: { label: 'Азарга', color: 'blue', emoji: '♂' },
-  guu: { label: 'Гүү', color: 'magenta', emoji: '♀' },
-  mori: { label: 'Морь', color: 'green', emoji: '⚲' },
+  er: { label: 'Эр', color: 'blue', emoji: '♂' },
+  em: { label: 'Эм', color: 'magenta', emoji: '♀' },
 }
 
 type FilterType = 'all' | Huis
@@ -39,9 +38,8 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
 
   const counts = useMemo(() => ({
     all: aduunuud.length,
-    azarga: aduunuud.filter(a => a.huis === 'azarga').length,
-    guu: aduunuud.filter(a => a.huis === 'guu').length,
-    mori: aduunuud.filter(a => a.huis === 'mori').length,
+    er: aduunuud.filter(a => a.huis === 'er').length,
+    em: aduunuud.filter(a => a.huis === 'em').length,
   }), [aduunuud])
 
   const filteredAduunuud = useMemo(() => {
@@ -184,9 +182,8 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
           block
           options={[
             { label: `Бүгд (${counts.all})`, value: 'all' },
-            { label: `♂ Азарга (${counts.azarga})`, value: 'azarga' },
-            { label: `♀ Гүү (${counts.guu})`, value: 'guu' },
-            { label: `⚲ Морь (${counts.mori})`, value: 'mori' },
+            { label: `♂ Эр (${counts.er})`, value: 'er' },
+            { label: `♀ Эм (${counts.em})`, value: 'em' },
           ]}
         />
       </div>

@@ -10,6 +10,7 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ChangePasswordRequest,
+  UpdateProfileRequest,
   User,
 } from './types'
 
@@ -55,6 +56,11 @@ const getMe = async () => {
 const changePassword = async (data: ChangePasswordRequest): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/change-password', data)
   return { message: response.data.message }
+}
+
+const updateProfile = async ({ id, data }: { id: number; data: UpdateProfileRequest }) => {
+  const response = await apiClient.put<ApiResponse<{ user: User }>>(`/users/${id}`, data)
+  return response.data.data.user
 }
 
 // ==================== Query Keys ====================
@@ -129,5 +135,16 @@ export const useMe = () => {
 export const useChangePassword = () => {
   return useMutation({
     mutationFn: changePassword,
+  })
+}
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (user) => {
+      queryClient.setQueryData(authKeys.me(), user)
+    },
   })
 }
