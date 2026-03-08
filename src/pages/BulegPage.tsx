@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Table,
   Button,
@@ -33,6 +34,7 @@ export function BulegPage() {
   const [editingBuleg, setEditingBuleg] = useState<Buleg | null>(null)
 
   const { message } = App.useApp()
+  const navigate = useNavigate()
 
   const { data: bulegs, isLoading, refetch } = useBulegs()
   const deleteBuleg = useDeleteBuleg()
@@ -87,14 +89,31 @@ export function BulegPage() {
       title: 'Нэр',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string) => <Text strong>{name}</Text>,
+      render: (name: string, record: Buleg) => (
+        <Text
+          strong
+          style={{ cursor: 'pointer', color: '#1890ff' }}
+          onClick={() => navigate(`/aduu?bulegId=${record.id}`)}
+        >
+          {name}
+        </Text>
+      ),
+    },
+    {
+      title: 'Адууны тоо',
+      key: 'aduuCount',
+      width: 110,
+      align: 'center',
+      render: (_, record) => (
+        <Text strong>{record.aduuToo ?? '—'}</Text>
+      ),
     },
     {
       title: 'Тайлбар',
-      dataIndex: 'description',
-      key: 'description',
-      render: (description: string) => (
-        <Text>{description || <Text type="secondary">—</Text>}</Text>
+      dataIndex: 'tailbar',
+      key: 'tailbar',
+      render: (tailbar: string) => (
+        <Text>{tailbar || <Text type="secondary">—</Text>}</Text>
       ),
     },
     {

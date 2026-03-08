@@ -30,7 +30,7 @@ export function AddEditBulegModal({ open, buleg, onClose, onSuccess }: AddEditBu
       if (buleg) {
         form.setFieldsValue({
           name: buleg.name,
-          description: buleg.description,
+          tailbar: buleg.tailbar,
         })
       } else {
         form.resetFields()
@@ -85,7 +85,7 @@ export function AddEditBulegModal({ open, buleg, onClose, onSuccess }: AddEditBu
         </Form.Item>
 
         <Form.Item
-          name="description"
+          name="tailbar"
           label="Тайлбар"
         >
           <TextArea
