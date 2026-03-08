@@ -85,7 +85,7 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
         return (
           <Flex gap={12} align="center">
             <Avatar
-              src={record.zurag?.[0]}
+              src={record.zupisnuud?.[0]?.url}
               size={48}
               shape="square"
               style={{ borderRadius: 8, flexShrink: 0 }}

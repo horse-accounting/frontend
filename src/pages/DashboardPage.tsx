@@ -1,4 +1,4 @@
-import { Card, Tag, Row, Col, Typography, Avatar, Spin, Button, List, Space, Progress } from 'antd'
+import { Card, Tag, Row, Col, Typography, Avatar, Spin, Button, List, Space, Progress, Table } from 'antd'
 import {
   UserOutlined,
   TrophyOutlined,
@@ -9,11 +9,11 @@ import {
   WomanOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useMe, useAduunuud, useUulders, type Huis } from '../api'
+import { useMe, useStats, type Huis } from '../api'
+import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
 
-// Get greeting based on time
 const getGreeting = () => {
   const hour = new Date().getHours()
   if (hour < 12) return 'Өглөөний мэнд'
@@ -34,28 +34,12 @@ const huisColors: Record<Huis, string> = {
 export function DashboardPage() {
   const navigate = useNavigate()
   const { data: user } = useMe()
-  const { data: aduuData, isLoading: aduuLoading } = useAduunuud({ limit: 100 })
-  const { data: uulders, isLoading: uulderLoading } = useUulders()
+  const { data: stats, isLoading } = useStats()
 
-  const aduunuud = aduuData?.aduunuud ?? []
-  const totalAduu = aduuData?.pagination?.total ?? 0
-  const totalUulder = uulders?.length ?? 0
-  const totalAmjilt = aduunuud.reduce((sum, aduu) => sum + (aduu.amjiltuud?.length ?? 0), 0)
-
-  // Statistics by huis
-  const erCount = aduunuud.filter(a => a.huis === 'er').length
-  const emCount = aduunuud.filter(a => a.huis === 'em').length
-
-  // Recent horses (last 5)
-  const recentHorses = [...aduunuud]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5)
-
-  // Horses with achievements
-  const horsesWithAchievements = aduunuud
-    .filter(a => a.amjiltuud && a.amjiltuud.length > 0)
-    .sort((a, b) => (b.amjiltuud?.length ?? 0) - (a.amjiltuud?.length ?? 0))
-    .slice(0, 5)
+  const niit = stats?.niitToo
+  const totalAduu = niit?.aduu ?? 0
+  const erCount = niit?.er ?? 0
+  const emCount = niit?.em ?? 0
 
   return (
     <div className="page-container">
@@ -107,20 +91,9 @@ export function DashboardPage() {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/aduu')} style={{ cursor: 'pointer' }}>
-            <Spin spinning={aduuLoading}>
+            <Spin spinning={isLoading}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                  }}
-                >
+                <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
                   🐴
                 </div>
                 <div>
@@ -133,51 +106,29 @@ export function DashboardPage() {
         </Col>
         <Col xs={12} sm={12} lg={6}>
           <Card hoverable onClick={() => navigate('/uulder')} style={{ cursor: 'pointer' }}>
-            <Spin spinning={uulderLoading}>
+            <Spin spinning={isLoading}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    background: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                  }}
-                >
+                <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
                   🏷️
                 </div>
                 <div>
                   <Text type="secondary" style={{ fontSize: 13 }}>Нийт үүлдэр</Text>
-                  <Title level={2} style={{ margin: 0 }}>{totalUulder}</Title>
+                  <Title level={2} style={{ margin: 0 }}>{niit?.uulder ?? 0}</Title>
                 </div>
               </div>
             </Spin>
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
-          <Card hoverable onClick={() => navigate('/amjilt')} style={{ cursor: 'pointer' }}>
-            <Spin spinning={aduuLoading}>
+          <Card hoverable onClick={() => navigate('/buleg')} style={{ cursor: 'pointer' }}>
+            <Spin spinning={isLoading}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    background: 'linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                  }}
-                >
-                  🏆
+                <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
+                  📂
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Нийт амжилт</Text>
-                  <Title level={2} style={{ margin: 0 }}>{totalAmjilt}</Title>
+                  <Text type="secondary" style={{ fontSize: 13 }}>Нийт бүлэг</Text>
+                  <Title level={2} style={{ margin: 0 }}>{niit?.buleg ?? 0}</Title>
                 </div>
               </div>
             </Spin>
@@ -185,27 +136,14 @@ export function DashboardPage() {
         </Col>
         <Col xs={12} sm={12} lg={6}>
           <Card>
-            <Spin spinning={aduuLoading}>
+            <Spin spinning={isLoading}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    background: 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                  }}
-                >
+                <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg, #f6ffed 0%, #b7eb8f 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
                   🏇
                 </div>
                 <div>
                   <Text type="secondary" style={{ fontSize: 13 }}>Уралдсан</Text>
-                  <Title level={2} style={{ margin: 0 }}>
-                    {aduunuud.filter(a => a.uraldsan).length}
-                  </Title>
+                  <Title level={2} style={{ margin: 0 }}>{niit?.uraldsan ?? 0}</Title>
                 </div>
               </div>
             </Spin>
@@ -213,48 +151,35 @@ export function DashboardPage() {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        {/* Horse Distribution */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        {/* Sex Distribution */}
         <Col xs={24} lg={8}>
           <Card
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>📊</span>
-                <span>Хүйсээр</span>
-              </div>
-            }
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>📊</span><span>Хүйсээр</span></div>}
             style={{ height: '100%' }}
           >
-            <Spin spinning={aduuLoading}>
+            <Spin spinning={isLoading}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space>
-                      <ManOutlined style={{ color: '#1890ff' }} />
-                      <Text>Эр</Text>
-                    </Space>
+                    <Space><ManOutlined style={{ color: '#1890ff' }} /><Text>Эр</Text></Space>
                     <Text strong>{erCount}</Text>
                   </div>
-                  <Progress
-                    percent={totalAduu ? Math.round((erCount / totalAduu) * 100) : 0}
-                    strokeColor="#1890ff"
-                    showInfo={false}
-                  />
+                  <Progress percent={totalAduu ? Math.round((erCount / totalAduu) * 100) : 0} strokeColor="#1890ff" showInfo={false} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space>
-                      <WomanOutlined style={{ color: '#eb2f96' }} />
-                      <Text>Эм</Text>
-                    </Space>
+                    <Space><WomanOutlined style={{ color: '#eb2f96' }} /><Text>Эм</Text></Space>
                     <Text strong>{emCount}</Text>
                   </div>
-                  <Progress
-                    percent={totalAduu ? Math.round((emCount / totalAduu) * 100) : 0}
-                    strokeColor="#eb2f96"
-                    showInfo={false}
-                  />
+                  <Progress percent={totalAduu ? Math.round((emCount / totalAduu) * 100) : 0} strokeColor="#eb2f96" showInfo={false} />
                 </div>
+                {(niit?.zarlagaToo ?? 0) > 0 && (
+                  <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: 4 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Зарлага: </Text>
+                    <Text type="warning" strong>{niit?.zarlagaToo}</Text>
+                  </div>
+                )}
               </div>
             </Spin>
           </Card>
@@ -263,22 +188,13 @@ export function DashboardPage() {
         {/* Recent Horses */}
         <Col xs={24} lg={8}>
           <Card
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ClockCircleOutlined />
-                <span>Сүүлд нэмэгдсэн</span>
-              </div>
-            }
-            extra={
-              <Button type="link" size="small" onClick={() => navigate('/aduu')}>
-                Бүгд <RightOutlined />
-              </Button>
-            }
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ClockCircleOutlined /><span>Сүүлд нэмэгдсэн</span></div>}
+            extra={<Button type="link" size="small" onClick={() => navigate('/aduu')}>Бүгд <RightOutlined /></Button>}
             style={{ height: '100%' }}
           >
-            <Spin spinning={aduuLoading}>
+            <Spin spinning={isLoading}>
               <List
-                dataSource={recentHorses}
+                dataSource={stats?.suulchiiNemegsed ?? []}
                 locale={{ emptyText: 'Адуу бүртгэгдээгүй' }}
                 renderItem={(item) => (
                   <List.Item
@@ -287,17 +203,9 @@ export function DashboardPage() {
                   >
                     <List.Item.Meta
                       avatar={
-                        item.zurag?.[0] ? (
-                          <Avatar src={item.zurag[0]} shape="square" size={40} />
-                        ) : (
-                          <Avatar
-                            shape="square"
-                            size={40}
-                            style={{ backgroundColor: '#f0f5ff', fontSize: 20 }}
-                          >
-                            🐴
-                          </Avatar>
-                        )
+                        <Avatar shape="square" size={40} style={{ backgroundColor: '#f0f5ff', fontSize: 20 }}>
+                          🐴
+                        </Avatar>
                       }
                       title={<Text strong>{item.ner}</Text>}
                       description={
@@ -306,10 +214,11 @@ export function DashboardPage() {
                             {huisLabels[item.huis]}
                           </Tag>
                           {item.tursunOn && (
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {item.tursunOn} он
-                            </Text>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{item.tursunOn} он</Text>
                           )}
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {dayjs(item.createdAt).format('MM/DD')}
+                          </Text>
                         </Space>
                       }
                     />
@@ -323,22 +232,13 @@ export function DashboardPage() {
         {/* Top Achievers */}
         <Col xs={24} lg={8}>
           <Card
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrophyOutlined style={{ color: '#faad14' }} />
-                <span>Шилдэг адуунууд</span>
-              </div>
-            }
-            extra={
-              <Button type="link" size="small" onClick={() => navigate('/amjilt')}>
-                Бүгд <RightOutlined />
-              </Button>
-            }
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><TrophyOutlined style={{ color: '#faad14' }} /><span>Шилдэг адуунууд</span></div>}
+            extra={<Button type="link" size="small" onClick={() => navigate('/amjilt')}>Бүгд <RightOutlined /></Button>}
             style={{ height: '100%' }}
           >
-            <Spin spinning={aduuLoading}>
+            <Spin spinning={isLoading}>
               <List
-                dataSource={horsesWithAchievements}
+                dataSource={stats?.topAmjilttaiAduu ?? []}
                 locale={{ emptyText: 'Амжилт бүртгэгдээгүй' }}
                 renderItem={(item, index) => (
                   <List.Item
@@ -362,13 +262,85 @@ export function DashboardPage() {
                         <Space size={4}>
                           <TrophyOutlined style={{ color: '#faad14', fontSize: 12 }} />
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            {item.amjiltuud?.length} амжилт
+                            {item.amjiltToo} амжилт
                           </Text>
                         </Space>
                       }
                     />
                   </List.Item>
                 )}
+              />
+            </Spin>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Breed & Group Distribution Tables */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>🏷️</span><span>Үүлдрээр</span></div>}
+          >
+            <Spin spinning={isLoading}>
+              <Table
+                dataSource={stats?.uulderaarAngilal ?? []}
+                rowKey="uulderNer"
+                size="small"
+                pagination={false}
+                columns={[
+                  {
+                    title: 'Үүлдэр',
+                    dataIndex: 'uulderNer',
+                    key: 'uulderNer',
+                    render: (text: string, record) => (
+                      <Button
+                        type="link"
+                        size="small"
+                        style={{ padding: 0 }}
+                        onClick={() => record.uulderId && navigate(`/aduu?uulderId=${record.uulderId}`)}
+                      >
+                        {text}
+                      </Button>
+                    ),
+                  },
+                  { title: 'Эр', dataIndex: 'erToo', key: 'erToo', width: 60, align: 'center' as const },
+                  { title: 'Эм', dataIndex: 'emToo', key: 'emToo', width: 60, align: 'center' as const },
+                  { title: 'Нийт', dataIndex: 'niit', key: 'niit', width: 60, align: 'center' as const, render: (v: number) => <Text strong>{v}</Text> },
+                ]}
+              />
+            </Spin>
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>📂</span><span>Бүлгээр</span></div>}
+          >
+            <Spin spinning={isLoading}>
+              <Table
+                dataSource={stats?.bulegaarAngilal ?? []}
+                rowKey="bulegNer"
+                size="small"
+                pagination={false}
+                columns={[
+                  {
+                    title: 'Бүлэг',
+                    dataIndex: 'bulegNer',
+                    key: 'bulegNer',
+                    render: (text: string, record) => (
+                      <Button
+                        type="link"
+                        size="small"
+                        style={{ padding: 0 }}
+                        onClick={() => record.bulegId && navigate(`/aduu?bulegId=${record.bulegId}`)}
+                      >
+                        {text}
+                      </Button>
+                    ),
+                  },
+                  { title: 'Эр', dataIndex: 'erToo', key: 'erToo', width: 60, align: 'center' as const },
+                  { title: 'Эм', dataIndex: 'emToo', key: 'emToo', width: 60, align: 'center' as const },
+                  { title: 'Нийт', dataIndex: 'niit', key: 'niit', width: 60, align: 'center' as const, render: (v: number) => <Text strong>{v}</Text> },
+                ]}
               />
             </Spin>
           </Card>

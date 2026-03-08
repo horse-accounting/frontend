@@ -72,6 +72,21 @@ export {
   useDeleteAmjilt,
 } from './amjilt'
 
+// Zurag (Photo)
+export {
+  zuragKeys,
+  useZuragnuud,
+  useAddZurag,
+  useUpdateZurag,
+  useDeleteZurag,
+} from './zurag'
+
+// Stats (Dashboard)
+export {
+  statsKeys,
+  useStats,
+} from './stats'
+
 // Upload
 export {
   useUploadImage,

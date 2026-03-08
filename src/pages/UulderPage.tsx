@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Table,
   Button,
@@ -33,6 +34,7 @@ export function UulderPage() {
   const [editingUulder, setEditingUulder] = useState<Uulder | null>(null)
 
   const { message } = App.useApp()
+  const navigate = useNavigate()
 
   const { data: uulders, isLoading, refetch } = useUulders()
   const deleteUulder = useDeleteUulder()
@@ -87,7 +89,24 @@ export function UulderPage() {
       title: 'Нэр',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string) => <Text strong>{name}</Text>,
+      render: (name: string, record: Uulder) => (
+        <Text
+          strong
+          style={{ cursor: 'pointer', color: '#1890ff' }}
+          onClick={() => navigate(`/aduu?uulderId=${record.id}`)}
+        >
+          {name}
+        </Text>
+      ),
+    },
+    {
+      title: 'Адууны тоо',
+      key: 'aduuCount',
+      width: 110,
+      align: 'center',
+      render: (_, record) => (
+        <Text strong>{record.aduuToo ?? '—'}</Text>
+      ),
     },
     {
       title: 'Тайлбар',

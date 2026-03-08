@@ -24,6 +24,8 @@ import {
   TeamOutlined,
   SafetyCertificateOutlined,
   FileTextOutlined,
+  EditOutlined,
+  WarningOutlined,
 } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import {
@@ -33,15 +35,21 @@ import {
   useBulegs,
   useAduunuud,
   useUploadImages,
-  useDeleteImage,
+  useAddZurag,
+  useUpdateZurag,
+  useDeleteZurag,
   type Aduu,
   type Huis,
+  type ZarlagaShaltgaan,
   type CreateAduuRequest,
+  zarlagaShaltgaanLabels,
 } from '../api'
 
-interface ImageInfo {
+interface ZuragInfo {
+  id?: number
   url: string
-  publicId?: string
+  tailbar?: string
+  isNew?: boolean
 }
 
 const { TextArea } = Input
@@ -61,6 +69,11 @@ const huisOptions: { value: Huis; label: string }[] = [
   { value: 'em', label: 'Эм' },
 ]
 
+const zarlagaOptions = Object.entries(zarlagaShaltgaanLabels).map(([value, label]) => ({
+  value: value as ZarlagaShaltgaan,
+  label,
+}))
+
 const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
   <Flex align="center" gap={8} style={{ marginBottom: 16 }}>
     <span style={{ fontSize: 16, color: '#1890ff' }}>{icon}</span>
@@ -72,12 +85,13 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
   const [form] = Form.useForm()
   const isEdit = !!aduu
 
-  const [images, setImages] = useState<ImageInfo[]>([])
+  const [images, setImages] = useState<ZuragInfo[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadingCount, setUploadingCount] = useState(0)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
+  const [editingTailbar, setEditingTailbar] = useState<number | null>(null)
 
   const { message } = App.useApp()
 
@@ -87,9 +101,14 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
   const createAduu = useCreateAduu()
   const updateAduu = useUpdateAduu()
   const uploadImages = useUploadImages()
-  const deleteImage = useDeleteImage()
+  const addZurag = useAddZurag()
+  const updateZurag = useUpdateZurag()
+  const deleteZurag = useDeleteZurag()
 
   const aduunuud = aduunuudData?.aduunuud || []
+
+  const zarlagaShaltgaan = Form.useWatch('zarlagaShaltgaan', form)
+  const ooriinBish = Form.useWatch('ooriinBish', form)
 
   useEffect(() => {
     if (open) {
@@ -98,7 +117,8 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
           ner: aduu.ner,
           huis: aduu.huis,
           tursunOn: aduu.tursunOn,
-          nasBarsan: aduu.nasBarsan,
+          zarlagaShaltgaan: aduu.zarlagaShaltgaan,
+          zarlagaOn: aduu.zarlagaOn,
           tursunGazar: aduu.tursunGazar,
           zus: aduu.zus,
           microchip: aduu.microchip,
@@ -106,33 +126,65 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
           tamga: aduu.tamga,
           uraldsan: aduu.uraldsan,
           tailbar: aduu.tailbar,
+          ooriinBish: aduu.ooriinBish || false,
+          ezniiNer: aduu.ezniiNer,
           uulderId: aduu.uulderId,
           bulegId: aduu.bulegId,
           fatherId: aduu.fatherId,
           motherId: aduu.motherId,
         })
-        // Existing images don't have publicId
-        setImages((aduu.zurag || []).map((url) => ({ url })))
+        setImages(
+          (aduu.zupisnuud || []).map((z) => ({
+            id: z.id,
+            url: z.url,
+            tailbar: z.tailbar,
+          }))
+        )
       } else {
         form.resetFields()
         setImages([])
       }
       setUploadingCount(0)
+      setEditingTailbar(null)
     }
   }, [open, aduu, form])
 
   const handleSubmit = async (values: CreateAduuRequest) => {
     try {
-      const submitData = {
-        ...values,
-        zurag: images.map((img) => img.url),
+      if (!values.zarlagaShaltgaan) {
+        values.zarlagaOn = undefined
+      }
+      if (!values.ooriinBish) {
+        values.ezniiNer = undefined
       }
 
       if (isEdit && aduu) {
-        await updateAduu.mutateAsync({ id: aduu.id, data: submitData })
+        await updateAduu.mutateAsync({
+          id: aduu.id,
+          data: {
+            ...values,
+            zarlagaShaltgaan: values.zarlagaShaltgaan || null,
+            zarlagaOn: values.zarlagaOn || null,
+            ezniiNer: values.ooriinBish ? values.ezniiNer : null,
+          },
+        })
+        for (const img of images) {
+          if (img.isNew) {
+            await addZurag.mutateAsync({
+              aduuId: aduu.id,
+              data: { url: img.url, tailbar: img.tailbar },
+            })
+          }
+        }
         message.success('Адуу амжилттай шинэчлэгдлээ')
       } else {
-        await createAduu.mutateAsync(submitData)
+        const newAduu = await createAduu.mutateAsync(values)
+        for (const img of images) {
+          await addZurag.mutateAsync({
+            aduuId: newAduu.id,
+            data: { url: img.url, tailbar: img.tailbar },
+          })
+        }
         message.success('Адуу амжилттай нэмэгдлээ')
       }
       onSuccess()
@@ -142,12 +194,11 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
   }
 
   const handleBeforeUpload: UploadProps['beforeUpload'] = async (file, fileList) => {
-    // Only process on the last file of the batch
     if (file !== fileList[fileList.length - 1]) {
       return false
     }
 
-    const remainingSlots = 5 - images.length
+    const remainingSlots = 10 - images.length
     if (fileList.length > remainingSlots) {
       message.warning(`${remainingSlots} зураг л оруулах боломжтой байна`)
     }
@@ -160,9 +211,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
 
     try {
       const result = await uploadImages.mutateAsync({ files: filesToUpload, folder: 'horses' })
-      const newImages: ImageInfo[] = result.images.map((img) => ({
+      const newImages: ZuragInfo[] = result.images.map((img) => ({
         url: img.url,
-        publicId: img.publicId,
+        isNew: true,
       }))
       setImages((prev) => [...prev, ...newImages])
       message.success(`${filesToUpload.length} зураг амжилттай хуулагдлаа`)
@@ -173,15 +224,14 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
       setUploadingCount(0)
     }
 
-    return false // Prevent default upload behavior
+    return false
   }
 
-  const handleRemoveImage = async (imageInfo: ImageInfo) => {
-    // If we have publicId, delete from server
-    if (imageInfo.publicId) {
+  const handleRemoveImage = async (imageInfo: ZuragInfo, index: number) => {
+    if (imageInfo.id) {
       setDeletingUrl(imageInfo.url)
       try {
-        await deleteImage.mutateAsync(imageInfo.publicId)
+        await deleteZurag.mutateAsync(imageInfo.id)
         message.success('Зураг устгагдлаа')
       } catch {
         message.error('Зураг устгахад алдаа гарлаа')
@@ -190,7 +240,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
       }
       setDeletingUrl(null)
     }
-    setImages((prev) => prev.filter((img) => img.url !== imageInfo.url))
+    setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handlePreview = (url: string) => {
@@ -198,9 +248,27 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
     setPreviewOpen(true)
   }
 
+  const handleTailbarChange = (index: number, tailbar: string) => {
+    setImages((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, tailbar } : img))
+    )
+  }
+
+  const handleTailbarSave = async (index: number) => {
+    const img = images[index]
+    if (img.id && !img.isNew) {
+      try {
+        await updateZurag.mutateAsync({ id: img.id, data: { tailbar: img.tailbar } })
+        message.success('Тайлбар хадгалагдлаа')
+      } catch {
+        message.error('Тайлбар хадгалахад алдаа гарлаа')
+      }
+    }
+    setEditingTailbar(null)
+  }
+
   const isLoading = createAduu.isPending || updateAduu.isPending
 
-  // Filter for father (er only) and mother (em only)
   const fatherOptions = aduunuud
     .filter((a) => a.huis === 'er' && a.id !== aduu?.id)
     .map((a) => ({ value: a.id, label: a.ner }))
@@ -240,7 +308,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={{ uraldsan: false }}
+        initialValues={{ uraldsan: false, ooriinBish: false }}
         size="large"
       >
         {/* Image Upload Section */}
@@ -255,74 +323,106 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
         >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
             {images.map((imageInfo, index) => (
-              <div
-                key={index}
-                style={{
-                  position: 'relative',
-                  width: 100,
-                  height: 100,
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                }}
-              >
-                <img
-                  src={imageInfo.url}
-                  alt={`horse-${index}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    cursor: 'pointer',
-                    opacity: deletingUrl === imageInfo.url ? 0.5 : 1,
-                  }}
-                  onClick={() => handlePreview(imageInfo.url)}
-                  onError={(e) => {
-                    e.currentTarget.src = FALLBACK_IMAGE
-                  }}
-                />
+              <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: 4, width: 100 }}>
                 <div
                   style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    left: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: deletingUrl === imageInfo.url ? 1 : 0,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (deletingUrl !== imageInfo.url) {
-                      e.currentTarget.style.background = 'rgba(0,0,0,0.5)'
-                      e.currentTarget.style.opacity = '1'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (deletingUrl !== imageInfo.url) {
-                      e.currentTarget.style.background = 'rgba(0,0,0,0)'
-                      e.currentTarget.style.opacity = '0'
-                    }
+                    position: 'relative',
+                    width: 100,
+                    height: 100,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   }}
                 >
-                  {deletingUrl === imageInfo.url ? (
-                    <LoadingOutlined style={{ color: '#fff', fontSize: 20 }} />
-                  ) : (
-                    <DeleteOutlined
-                      style={{ color: '#fff', fontSize: 20, cursor: 'pointer' }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleRemoveImage(imageInfo)
-                      }}
-                    />
-                  )}
+                  <img
+                    src={imageInfo.url}
+                    alt={`horse-${index}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      cursor: 'pointer',
+                      opacity: deletingUrl === imageInfo.url ? 0.5 : 1,
+                    }}
+                    onClick={() => handlePreview(imageInfo.url)}
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_IMAGE
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      left: 0,
+                      bottom: 0,
+                      background: 'rgba(0,0,0,0)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      opacity: deletingUrl === imageInfo.url ? 1 : 0,
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (deletingUrl !== imageInfo.url) {
+                        e.currentTarget.style.background = 'rgba(0,0,0,0.5)'
+                        e.currentTarget.style.opacity = '1'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (deletingUrl !== imageInfo.url) {
+                        e.currentTarget.style.background = 'rgba(0,0,0,0)'
+                        e.currentTarget.style.opacity = '0'
+                      }
+                    }}
+                  >
+                    {deletingUrl === imageInfo.url ? (
+                      <LoadingOutlined style={{ color: '#fff', fontSize: 20 }} />
+                    ) : (
+                      <>
+                        <EditOutlined
+                          style={{ color: '#fff', fontSize: 16, cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingTailbar(index)
+                          }}
+                        />
+                        <DeleteOutlined
+                          style={{ color: '#fff', fontSize: 16, cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveImage(imageInfo, index)
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
                 </div>
+                {editingTailbar === index ? (
+                  <Input
+                    size="small"
+                    placeholder="Тайлбар..."
+                    value={imageInfo.tailbar || ''}
+                    onChange={(e) => handleTailbarChange(index, e.target.value)}
+                    onBlur={() => handleTailbarSave(index)}
+                    onPressEnter={() => handleTailbarSave(index)}
+                    autoFocus
+                    style={{ fontSize: 11 }}
+                  />
+                ) : (
+                  <Text
+                    type="secondary"
+                    style={{ fontSize: 11, cursor: 'pointer', textAlign: 'center' }}
+                    onClick={() => setEditingTailbar(index)}
+                    title="Тайлбар нэмэх"
+                  >
+                    {imageInfo.tailbar || '+ тайлбар'}
+                  </Text>
+                )}
               </div>
             ))}
-            {images.length < 5 && (
+            {images.length < 10 && (
               <Upload
                 listType="picture-card"
                 showUploadList={false}
@@ -336,7 +436,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
             )}
           </div>
           <Text type="secondary" style={{ fontSize: 12, marginTop: 12, display: 'block' }}>
-            5 хүртэл зураг оруулах боломжтой • Олон зураг нэг дор сонгох боломжтой
+            10 хүртэл зураг оруулах боломжтой
           </Text>
         </div>
 
@@ -387,14 +487,11 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={12}>
+          <Col xs={24} sm={8}>
             <Form.Item name="zus" label="Зүс">
               <Input placeholder="Хүрэн, Халтар, Хар гэх мэт" />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col xs={24} sm={8}>
             <Form.Item name="tursunOn" label="Төрсөн он">
               <InputNumber
@@ -406,20 +503,58 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
             </Form.Item>
           </Col>
           <Col xs={24} sm={8}>
-            <Form.Item name="nasBarsan" label="Нас барсан он">
-              <InputNumber
-                placeholder="—"
-                style={{ width: '100%' }}
-                min={1900}
-                max={new Date().getFullYear()}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={8}>
             <Form.Item name="tursunGazar" label="Төрсөн газар">
               <Input placeholder="Аймаг, сум" />
             </Form.Item>
           </Col>
+        </Row>
+
+        <Divider style={{ margin: '8px 0 24px' }} />
+
+        {/* Ownership Section */}
+        <SectionHeader icon={<WarningOutlined />} title="Эзэмшил" />
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item name="ooriinBish" valuePropName="checked">
+              <Switch checkedChildren="Тийм" unCheckedChildren="Үгүй" />
+            </Form.Item>
+            <Text style={{ marginTop: -20, marginBottom: 12, display: 'block' }}>Өөрийн адуу биш</Text>
+          </Col>
+          {ooriinBish && (
+            <Col xs={24} sm={12}>
+              <Form.Item name="ezniiNer" label="Эзний нэр">
+                <Input placeholder="Эзэмшигчийн нэр" />
+              </Form.Item>
+            </Col>
+          )}
+        </Row>
+
+        <Divider style={{ margin: '8px 0 24px' }} />
+
+        {/* Зарлага Section */}
+        <SectionHeader icon={<WarningOutlined />} title="Зарлага" />
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item name="zarlagaShaltgaan" label="Зарлага шалтгаан">
+              <Select
+                placeholder="Сонгох..."
+                allowClear
+                options={zarlagaOptions}
+              />
+            </Form.Item>
+          </Col>
+          {zarlagaShaltgaan && (
+            <Col xs={24} sm={12}>
+              <Form.Item name="zarlagaOn" label="Зарлага он">
+                <InputNumber
+                  placeholder="2025"
+                  style={{ width: '100%' }}
+                  min={1900}
+                  max={new Date().getFullYear()}
+                />
+              </Form.Item>
+            </Col>
+          )}
         </Row>
 
         <Divider style={{ margin: '8px 0 24px' }} />

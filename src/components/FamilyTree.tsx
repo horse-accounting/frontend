@@ -13,7 +13,7 @@ interface FamilyTreeProps {
     id: number
     ner: string
     huis: Huis
-    zurag?: string[]
+    zupisnuud?: { id: number; url: string; tailbar?: string }[]
   }
   ancestors: {
     father?: AncestorNode

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Table,
   Button,
@@ -28,7 +28,17 @@ import {
   FileExcelOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
-import { useAduunuud, useUulders, useBulegs, useDeleteAduu, useExportAduuExcel, type Aduu, type Huis } from '../api'
+import {
+  useAduunuud,
+  useUulders,
+  useBulegs,
+  useDeleteAduu,
+  useExportAduuExcel,
+  type Aduu,
+  type Huis,
+  type ZarlagaShaltgaan,
+  zarlagaShaltgaanLabels,
+} from '../api'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
 
 const { Title, Text } = Typography
@@ -48,23 +58,96 @@ const huisColors: Record<Huis, string> = {
   em: 'magenta',
 }
 
+const zarlagaFilterOptions = Object.entries(zarlagaShaltgaanLabels).map(([value, label]) => ({
+  value: value as ZarlagaShaltgaan,
+  label,
+}))
+
+const zarlagaColors: Record<ZarlagaShaltgaan, string> = {
+  uhsen: 'red',
+  belgelsen: 'purple',
+  zarsan: 'orange',
+  alga_bolson: 'volcano',
+  hulgailagdsan: 'default',
+}
+
+function getStr(params: URLSearchParams, key: string): string | undefined {
+  return params.get(key) || undefined
+}
+function getNum(params: URLSearchParams, key: string): number | undefined {
+  const v = params.get(key)
+  return v ? Number(v) : undefined
+}
+function getBool(params: URLSearchParams, key: string): boolean | undefined {
+  const v = params.get(key)
+  if (v === 'true') return true
+  if (v === 'false') return false
+  return undefined
+}
+
 export function AduunuudPage() {
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
-  const [huis, setHuis] = useState<Huis | undefined>()
-  const [uulderId, setUulderId] = useState<number | undefined>()
-  const [bulegId, setBulegId] = useState<number | undefined>()
-  const [uraldsan, setUraldsan] = useState<boolean | undefined>()
-  const [tursunOnMin, setTursunOnMin] = useState<number | undefined>()
-  const [tursunOnMax, setTursunOnMax] = useState<number | undefined>()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // --- URL params нь зөвхөн API руу явуулах query-г тодорхойлно ---
+  const page = getNum(searchParams, 'page') || 1
+  const limit = getNum(searchParams, 'limit') || 10
+  const search = getStr(searchParams, 'search')
+  const huis = getStr(searchParams, 'huis') as Huis | undefined
+  const uulderId = getNum(searchParams, 'uulderId')
+  const bulegId = getNum(searchParams, 'bulegId')
+  const uraldsan = getBool(searchParams, 'uraldsan')
+  const tursunOnMin = getNum(searchParams, 'tursunOnMin')
+  const tursunOnMax = getNum(searchParams, 'tursunOnMax')
+  const zarlagaShaltgaan = getStr(searchParams, 'zarlagaShaltgaan') as ZarlagaShaltgaan | undefined
+
+  // --- Local filter state: хэрэглэгч өөрчлөхөд зөвхөн энд хадгална ---
+  const [fSearch, setFSearch] = useState(search || '')
+  const [fHuis, setFHuis] = useState<Huis | undefined>(huis)
+  const [fUulderId, setFUulderId] = useState<number | undefined>(uulderId)
+  const [fBulegId, setFBulegId] = useState<number | undefined>(bulegId)
+  const [fUraldsan, setFUraldsan] = useState<boolean | undefined>(uraldsan)
+  const [fTursunOnMin, setFTursunOnMin] = useState<number | undefined>(tursunOnMin)
+  const [fTursunOnMax, setFTursunOnMax] = useState<number | undefined>(tursunOnMax)
+  const [fZarlagaShaltgaan, setFZarlagaShaltgaan] = useState<ZarlagaShaltgaan | undefined>(zarlagaShaltgaan)
+
+  // URL params гаднаас өөрчлөгдөхөд (жнь: BulegPage-с navigate хийхэд) local state-г sync хийнэ
+  useEffect(() => {
+    setFSearch(search || '')
+    setFHuis(huis)
+    setFUulderId(uulderId)
+    setFBulegId(bulegId)
+    setFUraldsan(uraldsan)
+    setFTursunOnMin(tursunOnMin)
+    setFTursunOnMax(tursunOnMax)
+    setFZarlagaShaltgaan(zarlagaShaltgaan)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAduu, setEditingAduu] = useState<Aduu | null>(null)
 
   const navigate = useNavigate()
   const { message } = App.useApp()
+
+  const syncParamsFromFilters = useCallback(
+    (pageOverride?: number) => {
+      setSearchParams(() => {
+        const next = new URLSearchParams()
+        if (fSearch) next.set('search', fSearch)
+        if (fHuis) next.set('huis', fHuis)
+        if (fUulderId) next.set('uulderId', String(fUulderId))
+        if (fBulegId) next.set('bulegId', String(fBulegId))
+        if (fUraldsan !== undefined) next.set('uraldsan', String(fUraldsan))
+        if (fTursunOnMin) next.set('tursunOnMin', String(fTursunOnMin))
+        if (fTursunOnMax) next.set('tursunOnMax', String(fTursunOnMax))
+        if (fZarlagaShaltgaan) next.set('zarlagaShaltgaan', fZarlagaShaltgaan)
+        next.set('page', String(pageOverride ?? 1))
+        next.set('limit', String(limit))
+        return next
+      })
+    },
+    [fSearch, fHuis, fUulderId, fBulegId, fUraldsan, fTursunOnMin, fTursunOnMax, fZarlagaShaltgaan, limit, setSearchParams],
+  )
 
   const { data, isLoading, refetch } = useAduunuud({
     page,
@@ -76,6 +159,7 @@ export function AduunuudPage() {
     uraldsan,
     tursunOnMin,
     tursunOnMax,
+    zarlagaShaltgaan,
   })
 
   const { data: uulders } = useUulders()
@@ -84,20 +168,19 @@ export function AduunuudPage() {
   const exportExcel = useExportAduuExcel()
 
   const handleSearch = () => {
-    setSearch(searchInput)
-    setPage(1)
+    syncParamsFromFilters(1)
   }
 
   const handleReset = () => {
-    setSearchInput('')
-    setSearch('')
-    setHuis(undefined)
-    setUulderId(undefined)
-    setBulegId(undefined)
-    setUraldsan(undefined)
-    setTursunOnMin(undefined)
-    setTursunOnMax(undefined)
-    setPage(1)
+    setFSearch('')
+    setFHuis(undefined)
+    setFUulderId(undefined)
+    setFBulegId(undefined)
+    setFUraldsan(undefined)
+    setFTursunOnMin(undefined)
+    setFTursunOnMax(undefined)
+    setFZarlagaShaltgaan(undefined)
+    setSearchParams(new URLSearchParams())
   }
 
   const handleExportExcel = () => {
@@ -144,8 +227,12 @@ export function AduunuudPage() {
   }
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setPage(pagination.current || 1)
-    setLimit(pagination.pageSize || 10)
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('page', String(pagination.current || 1))
+      next.set('limit', String(pagination.pageSize || 10))
+      return next
+    })
   }
 
   const columns: ColumnsType<Aduu> = [
@@ -154,38 +241,41 @@ export function AduunuudPage() {
       key: 'aduu',
       width: 220,
       fixed: 'left',
-      render: (_, record) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {record.zurag && record.zurag.length > 0 ? (
-            <Image
-              src={record.zurag[0]}
-              width={48}
-              height={48}
-              style={{ objectFit: 'cover', borderRadius: 8 }}
-              preview={{ cover: <EyeOutlined /> }}
-              fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI4IiBmaWxsPSIjZjBmNWZmIi8+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjQiPvCfkLQ8L3RleHQ+PC9zdmc+"
-            />
-          ) : (
-            <Avatar
-              size={48}
-              style={{
-                backgroundColor: '#f0f5ff',
-                color: '#1890ff',
-                fontSize: 24,
-                borderRadius: 8,
-              }}
-            >
-              🐴
-            </Avatar>
-          )}
-          <div>
-            <Text strong style={{ display: 'block' }}>{record.ner}</Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {record.zus || ''}
-            </Text>
+      render: (_, record) => {
+        const firstImage = record.zupisnuud?.[0]?.url
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {firstImage ? (
+              <Image
+                src={firstImage}
+                width={48}
+                height={48}
+                style={{ objectFit: 'cover', borderRadius: 8 }}
+                preview={{ mask: <EyeOutlined /> }}
+                fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI4IiBmaWxsPSIjZjBmNWZmIi8+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjQiPvCfkLQ8L3RleHQ+PC9zdmc+"
+              />
+            ) : (
+              <Avatar
+                size={48}
+                style={{
+                  backgroundColor: '#f0f5ff',
+                  color: '#1890ff',
+                  fontSize: 24,
+                  borderRadius: 8,
+                }}
+              >
+                🐴
+              </Avatar>
+            )}
+            <div>
+              <Text strong style={{ display: 'block' }}>{record.ner}</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {record.zus || ''}
+              </Text>
+            </div>
           </div>
-        </div>
-      ),
+        )
+      },
     },
     {
       title: 'Хүйс',
@@ -229,6 +319,25 @@ export function AduunuudPage() {
       ),
     },
     {
+      title: 'Зарлага',
+      key: 'zarlagaShaltgaan',
+      width: 120,
+      align: 'center',
+      render: (_, record) => {
+        if (!record.zarlagaShaltgaan) return <Text type="secondary">—</Text>
+        return (
+          <Tooltip title={record.zarlagaOn ? `${record.zarlagaOn} он` : undefined}>
+            <Tag
+              color={zarlagaColors[record.zarlagaShaltgaan]}
+              style={{ borderRadius: 12 }}
+            >
+              {zarlagaShaltgaanLabels[record.zarlagaShaltgaan]}
+            </Tag>
+          </Tooltip>
+        )
+      },
+    },
+    {
       title: 'Төрсөн газар',
       dataIndex: 'tursunGazar',
       key: 'tursunGazar',
@@ -244,15 +353,6 @@ export function AduunuudPage() {
       width: 130,
       render: (microchip: string) => (
         <Text style={{ fontSize: 12 }}>{microchip || <Text type="secondary">—</Text>}</Text>
-      ),
-    },
-    {
-      title: 'DNA код',
-      dataIndex: 'dnaCode',
-      key: 'dnaCode',
-      width: 120,
-      render: (dnaCode: string) => (
-        <Text style={{ fontSize: 12 }}>{dnaCode || <Text type="secondary">—</Text>}</Text>
       ),
     },
     {
@@ -377,10 +477,11 @@ export function AduunuudPage() {
             <Input
               placeholder="Нэрээр хайх..."
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              value={fSearch}
+              onChange={(e) => setFSearch(e.target.value)}
               onPressEnter={handleSearch}
               allowClear
+              onClear={() => setFSearch('')}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>
@@ -389,8 +490,8 @@ export function AduunuudPage() {
               allowClear
               style={{ width: '100%' }}
               options={huisOptions}
-              value={huis}
-              onChange={setHuis}
+              value={fHuis}
+              onChange={(v) => setFHuis(v)}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>
@@ -399,8 +500,8 @@ export function AduunuudPage() {
               allowClear
               style={{ width: '100%' }}
               options={uulders?.map((u) => ({ value: u.id, label: u.name }))}
-              value={uulderId}
-              onChange={setUulderId}
+              value={fUulderId}
+              onChange={(v) => setFUulderId(v)}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>
@@ -409,8 +510,8 @@ export function AduunuudPage() {
               allowClear
               style={{ width: '100%' }}
               options={bulegs?.map((b) => ({ value: b.id, label: b.name }))}
-              value={bulegId}
-              onChange={setBulegId}
+              value={fBulegId}
+              onChange={(v) => setFBulegId(v)}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>
@@ -419,11 +520,11 @@ export function AduunuudPage() {
               allowClear
               style={{ width: '100%' }}
               options={[
-                { value: true, label: 'Тийм' },
-                { value: false, label: 'Үгүй' },
+                { value: 'true', label: 'Тийм' },
+                { value: 'false', label: 'Үгүй' },
               ]}
-              value={uraldsan}
-              onChange={setUraldsan}
+              value={fUraldsan !== undefined ? String(fUraldsan) : undefined}
+              onChange={(v) => setFUraldsan(v === 'true' ? true : v === 'false' ? false : undefined)}
             />
           </Col>
         </Row>
@@ -434,8 +535,8 @@ export function AduunuudPage() {
               style={{ width: '100%' }}
               min={1900}
               max={new Date().getFullYear()}
-              value={tursunOnMin}
-              onChange={(v) => setTursunOnMin(v ?? undefined)}
+              value={fTursunOnMin}
+              onChange={(v) => setFTursunOnMin(v ?? undefined)}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>
@@ -444,11 +545,21 @@ export function AduunuudPage() {
               style={{ width: '100%' }}
               min={1900}
               max={new Date().getFullYear()}
-              value={tursunOnMax}
-              onChange={(v) => setTursunOnMax(v ?? undefined)}
+              value={fTursunOnMax}
+              onChange={(v) => setFTursunOnMax(v ?? undefined)}
             />
           </Col>
-          <Col xs={24} sm={12} md={16} lg={18}>
+          <Col xs={12} sm={6} md={4} lg={3}>
+            <Select
+              placeholder="Зарлага"
+              allowClear
+              style={{ width: '100%' }}
+              options={zarlagaFilterOptions}
+              value={fZarlagaShaltgaan}
+              onChange={(v) => setFZarlagaShaltgaan(v)}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={12} lg={15}>
             <Space wrap style={{ width: '100%', justifyContent: 'flex-start' }}>
               <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
                 Хайх

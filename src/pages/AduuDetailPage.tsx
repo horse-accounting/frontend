@@ -27,7 +27,7 @@ import {
   TrophyOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons'
-import { useAduu, useFamilyTree, useDownloadAduuPdf, type Huis } from '../api'
+import { useAduu, useFamilyTree, useDownloadAduuPdf, type Huis, zarlagaShaltgaanLabels } from '../api'
 import { useState } from 'react'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
 import { FamilyTree } from '../components/FamilyTree'
@@ -114,7 +114,8 @@ export function AduuDetailPage() {
 
   // Calculate age
   const currentYear = new Date().getFullYear()
-  const age = aduu.tursunOn ? (aduu.nasBarsan || currentYear) - aduu.tursunOn : null
+  const endYear = aduu.zarlagaOn || currentYear
+  const age = aduu.tursunOn ? endYear - aduu.tursunOn : null
 
   return (
     <div className="page-container">
@@ -145,9 +146,9 @@ export function AduuDetailPage() {
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} sm={8} md={6} lg={5}>
             <div className="detail-hero-image">
-              {aduu.zurag && aduu.zurag.length > 0 ? (
+              {aduu.zupisnuud && aduu.zupisnuud.length > 0 ? (
                 <Image
-                  src={aduu.zurag[0]}
+                  src={aduu.zupisnuud[0].url}
                   alt={aduu.ner}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   fallback={FALLBACK_IMAGE}
@@ -178,9 +179,14 @@ export function AduuDetailPage() {
                       Уралдсан
                     </Tag>
                   )}
-                  {aduu.nasBarsan && (
-                    <Tag color="default" style={{ fontSize: 14, padding: '4px 12px' }}>
-                      Нас барсан ({aduu.nasBarsan})
+                  {aduu.zarlagaShaltgaan && (
+                    <Tag color="red" style={{ fontSize: 14, padding: '4px 12px' }}>
+                      {zarlagaShaltgaanLabels[aduu.zarlagaShaltgaan]}{aduu.zarlagaOn ? ` (${aduu.zarlagaOn})` : ''}
+                    </Tag>
+                  )}
+                  {aduu.ooriinBish && (
+                    <Tag color="orange" style={{ fontSize: 14, padding: '4px 12px' }}>
+                      Өөрийн биш{aduu.ezniiNer ? ` — ${aduu.ezniiNer}` : ''}
                     </Tag>
                   )}
                 </Space>
@@ -225,18 +231,25 @@ export function AduuDetailPage() {
         {/* Left Column */}
         <Col xs={24} lg={8}>
           {/* Gallery */}
-          {aduu.zurag && aduu.zurag.length > 1 && (
+          {aduu.zupisnuud && aduu.zupisnuud.length > 1 && (
             <Card title="Зургууд" size="small" style={{ marginBottom: 24 }}>
               <Image.PreviewGroup>
                 <Row gutter={[8, 8]}>
-                  {aduu.zurag.map((url, index) => (
-                    <Col span={8} key={index}>
-                      <Image
-                        src={url}
-                        alt={`${aduu.ner}-${index}`}
-                        style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 8 }}
-                        fallback={FALLBACK_IMAGE}
-                      />
+                  {aduu.zupisnuud.map((zurag, index) => (
+                    <Col span={8} key={zurag.id || index}>
+                      <div>
+                        <Image
+                          src={zurag.url}
+                          alt={`${aduu.ner}-${index}`}
+                          style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 8 }}
+                          fallback={FALLBACK_IMAGE}
+                        />
+                        {zurag.tailbar && (
+                          <Text type="secondary" style={{ fontSize: 11, display: 'block', textAlign: 'center' }}>
+                            {zurag.tailbar}
+                          </Text>
+                        )}
+                      </div>
                     </Col>
                   ))}
                 </Row>
@@ -433,7 +446,7 @@ export function AduuDetailPage() {
             id: aduu.id,
             ner: aduu.ner,
             huis: aduu.huis,
-            zurag: aduu.zurag,
+            zupisnuud: aduu.zupisnuud,
           }}
           ancestors={familyTree.ancestors}
           descendants={familyTree.descendants}
