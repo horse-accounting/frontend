@@ -5,11 +5,11 @@ import {
   PlusOutlined,
   RightOutlined,
   ClockCircleOutlined,
-  ManOutlined,
-  WomanOutlined,
 } from '@ant-design/icons'
+import { Pie } from '@ant-design/charts'
 import { useNavigate } from 'react-router-dom'
 import { useMe, useStats, type Huis } from '../api'
+import type { UulderAngilal, BulegAngilal } from '../api/types'
 import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
@@ -159,28 +159,45 @@ export function DashboardPage() {
             style={{ height: '100%' }}
           >
             <Spin spinning={isLoading}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space><ManOutlined style={{ color: '#1890ff' }} /><Text>Эр</Text></Space>
-                    <Text strong>{erCount}</Text>
-                  </div>
-                  <Progress percent={totalAduu ? Math.round((erCount / totalAduu) * 100) : 0} strokeColor="#1890ff" showInfo={false} />
+              {totalAduu === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <Text type="secondary">Мэдээлэл байхгүй</Text>
                 </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space><WomanOutlined style={{ color: '#eb2f96' }} /><Text>Эм</Text></Space>
-                    <Text strong>{emCount}</Text>
-                  </div>
-                  <Progress percent={totalAduu ? Math.round((emCount / totalAduu) * 100) : 0} strokeColor="#eb2f96" showInfo={false} />
-                </div>
-                {(niit?.zarlagaToo ?? 0) > 0 && (
-                  <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: 4 }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Зарлага: </Text>
-                    <Text type="warning" strong>{niit?.zarlagaToo}</Text>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <>
+                  <Pie
+                    data={[
+                      { type: 'Эр', value: erCount },
+                      { type: 'Эм', value: emCount },
+                    ]}
+                    angleField="value"
+                    colorField="type"
+                    innerRadius={0.6}
+                    height={220}
+                    scale={{ color: { range: ['#1890ff', '#eb2f96'] } }}
+                    legend={{ color: { position: 'bottom', layout: { justifyContent: 'center' } } }}
+                    annotations={[
+                      {
+                        type: 'text',
+                        style: {
+                          text: `${totalAduu}`,
+                          x: '50%',
+                          y: '50%',
+                          textAlign: 'center',
+                          fontSize: 24,
+                          fontWeight: 'bold',
+                        },
+                      },
+                    ]}
+                  />
+                  {(niit?.zarlagaToo ?? 0) > 0 && (
+                    <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: 4 }}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>Зарлага: </Text>
+                      <Text type="warning" strong>{niit?.zarlagaToo}</Text>
+                    </div>
+                  )}
+                </>
+              )}
             </Spin>
           </Card>
         </Col>
@@ -275,77 +292,213 @@ export function DashboardPage() {
         </Col>
       </Row>
 
-      {/* Breed & Group Distribution Tables */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
+      {/* Age Distribution */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
           <Card
-            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>🏷️</span><span>Үүлдрээр</span></div>}
+            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>📈</span><span>Насаар ангилал</span></div>}
           >
             <Spin spinning={isLoading}>
-              <Table
-                dataSource={stats?.uulderaarAngilal ?? []}
-                rowKey="uulderNer"
-                size="small"
-                pagination={false}
-                columns={[
-                  {
-                    title: 'Үүлдэр',
-                    dataIndex: 'uulderNer',
-                    key: 'uulderNer',
-                    render: (text: string, record) => (
-                      <Button
-                        type="link"
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={() => record.uulderId && navigate(`/aduu?uulderId=${record.uulderId}`)}
-                      >
-                        {text}
-                      </Button>
-                    ),
-                  },
-                  { title: 'Эр', dataIndex: 'erToo', key: 'erToo', width: 60, align: 'center' as const },
-                  { title: 'Эм', dataIndex: 'emToo', key: 'emToo', width: 60, align: 'center' as const },
-                  { title: 'Нийт', dataIndex: 'niit', key: 'niit', width: 60, align: 'center' as const, render: (v: number) => <Text strong>{v}</Text> },
-                ]}
-              />
-            </Spin>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card
-            title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>📂</span><span>Бүлгээр</span></div>}
-          >
-            <Spin spinning={isLoading}>
-              <Table
-                dataSource={stats?.bulegaarAngilal ?? []}
-                rowKey="bulegNer"
-                size="small"
-                pagination={false}
-                columns={[
-                  {
-                    title: 'Бүлэг',
-                    dataIndex: 'bulegNer',
-                    key: 'bulegNer',
-                    render: (text: string, record) => (
-                      <Button
-                        type="link"
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={() => record.bulegId && navigate(`/aduu?bulegId=${record.bulegId}`)}
-                      >
-                        {text}
-                      </Button>
-                    ),
-                  },
-                  { title: 'Эр', dataIndex: 'erToo', key: 'erToo', width: 60, align: 'center' as const },
-                  { title: 'Эм', dataIndex: 'emToo', key: 'emToo', width: 60, align: 'center' as const },
-                  { title: 'Нийт', dataIndex: 'niit', key: 'niit', width: 60, align: 'center' as const, render: (v: number) => <Text strong>{v}</Text> },
-                ]}
-              />
+              {(() => {
+                const nasData = stats?.nasaarAngilal ?? []
+                const maxNasVal = Math.max(...nasData.flatMap(d => [d.erToo, d.emToo]), 1)
+                return (
+                  <Table
+                    dataSource={nasData}
+                    rowKey="nasZereg"
+                    size="small"
+                    pagination={false}
+                    columns={[
+                      {
+                        title: 'Нас зэрэг',
+                        dataIndex: 'nasZereg',
+                        key: 'nasZereg',
+                        render: (text: string) => <Text strong>{text}</Text>,
+                      },
+                      {
+                        title: 'Эр',
+                        dataIndex: 'erToo',
+                        key: 'erToo',
+                        width: 180,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxNasVal) * 100)} strokeColor="#1890ff" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Эм',
+                        dataIndex: 'emToo',
+                        key: 'emToo',
+                        width: 180,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxNasVal) * 100)} strokeColor="#eb2f96" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Нийт',
+                        dataIndex: 'niit',
+                        key: 'niit',
+                        width: 80,
+                        align: 'center' as const,
+                        render: (v: number) => <Tag color="blue">{v}</Tag>,
+                      },
+                    ]}
+                  />
+                )
+              })()}
             </Spin>
           </Card>
         </Col>
       </Row>
+
+      {/* Breed & Group Distribution Tables */}
+      {(() => {
+        const uulderData = stats?.uulderaarAngilal ?? []
+        const maxUulder = Math.max(...uulderData.flatMap(d => [d.erToo, d.emToo]), 1)
+        const bulegData = stats?.bulegaarAngilal ?? []
+        const maxBuleg = Math.max(...bulegData.flatMap(d => [d.erToo, d.emToo]), 1)
+        return (
+          <Row gutter={[16, 16]}>
+            <Col xs={24} lg={12}>
+              <Card
+                title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>🏷️</span><span>Үүлдрээр</span></div>}
+              >
+                <Spin spinning={isLoading}>
+                  <Table
+                    dataSource={uulderData}
+                    rowKey="uulderNer"
+                    size="small"
+                    pagination={false}
+                    columns={[
+                      {
+                        title: 'Үүлдэр',
+                        dataIndex: 'uulderNer',
+                        key: 'uulderNer',
+                        render: (text: string, record: UulderAngilal) =>
+                          record.uulderId === null ? (
+                            <Text type="secondary" italic>{text}</Text>
+                          ) : (
+                            <Button
+                              type="link"
+                              size="small"
+                              style={{ padding: 0 }}
+                              onClick={() => navigate(`/aduu?uulderId=${record.uulderId}`)}
+                            >
+                              {text}
+                            </Button>
+                          ),
+                      },
+                      {
+                        title: 'Эр',
+                        dataIndex: 'erToo',
+                        key: 'erToo',
+                        width: 140,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxUulder) * 100)} strokeColor="#1890ff" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Эм',
+                        dataIndex: 'emToo',
+                        key: 'emToo',
+                        width: 140,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxUulder) * 100)} strokeColor="#eb2f96" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Нийт',
+                        dataIndex: 'niit',
+                        key: 'niit',
+                        width: 80,
+                        align: 'center' as const,
+                        render: (v: number) => <Tag color="blue">{v}</Tag>,
+                      },
+                    ]}
+                  />
+                </Spin>
+              </Card>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Card
+                title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>📂</span><span>Бүлгээр</span></div>}
+              >
+                <Spin spinning={isLoading}>
+                  <Table
+                    dataSource={bulegData}
+                    rowKey="bulegNer"
+                    size="small"
+                    pagination={false}
+                    columns={[
+                      {
+                        title: 'Бүлэг',
+                        dataIndex: 'bulegNer',
+                        key: 'bulegNer',
+                        render: (text: string, record: BulegAngilal) =>
+                          record.bulegId === null ? (
+                            <Text type="secondary" italic>{text}</Text>
+                          ) : (
+                            <Button
+                              type="link"
+                              size="small"
+                              style={{ padding: 0 }}
+                              onClick={() => navigate(`/aduu?bulegId=${record.bulegId}`)}
+                            >
+                              {text}
+                            </Button>
+                          ),
+                      },
+                      {
+                        title: 'Эр',
+                        dataIndex: 'erToo',
+                        key: 'erToo',
+                        width: 140,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxBuleg) * 100)} strokeColor="#1890ff" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Эм',
+                        dataIndex: 'emToo',
+                        key: 'emToo',
+                        width: 140,
+                        render: (v: number) => (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ minWidth: 24 }}>{v}</span>
+                            <Progress percent={Math.round((v / maxBuleg) * 100)} strokeColor="#eb2f96" showInfo={false} size="small" style={{ flex: 1, margin: 0 }} />
+                          </div>
+                        ),
+                      },
+                      {
+                        title: 'Нийт',
+                        dataIndex: 'niit',
+                        key: 'niit',
+                        width: 80,
+                        align: 'center' as const,
+                        render: (v: number) => <Tag color="blue">{v}</Tag>,
+                      },
+                    ]}
+                  />
+                </Spin>
+              </Card>
+            </Col>
+          </Row>
+        )
+      })()}
     </div>
   )
 }
