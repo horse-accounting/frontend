@@ -61,7 +61,8 @@ interface AddEditAduuModalProps {
   open: boolean
   aduu: Aduu | null
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (newAduu?: Aduu) => void
+  defaultHuis?: Huis
 }
 
 const huisOptions: { value: Huis; label: string }[] = [
@@ -81,7 +82,7 @@ const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }
   </Flex>
 )
 
-export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduuModalProps) {
+export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }: AddEditAduuModalProps) {
   const [form] = Form.useForm()
   const isEdit = !!aduu
 
@@ -142,6 +143,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
         )
       } else {
         form.resetFields()
+        if (defaultHuis) {
+          form.setFieldsValue({ huis: defaultHuis })
+        }
         setImages([])
       }
       setUploadingCount(0)
@@ -186,6 +190,8 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess }: AddEditAduu
           })
         }
         message.success('Адуу амжилттай нэмэгдлээ')
+        onSuccess(newAduu)
+        return
       }
       onSuccess()
     } catch {
