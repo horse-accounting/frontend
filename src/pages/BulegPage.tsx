@@ -89,12 +89,8 @@ export function BulegPage() {
       title: 'Нэр',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: Buleg) => (
-        <Text
-          strong
-          style={{ cursor: 'pointer', color: '#1890ff' }}
-          onClick={() => navigate(`/aduu?bulegId=${record.id}`)}
-        >
+      render: (name: string) => (
+        <Text strong style={{ color: '#1890ff' }}>
           {name}
         </Text>
       ),
@@ -223,6 +219,13 @@ export function BulegPage() {
           }}
           size="middle"
           rowClassName={() => 'table-row'}
+          onRow={(record) => ({
+            style: { cursor: 'pointer' },
+            onClick: (e) => {
+              if ((e.target as HTMLElement).closest('button, .ant-popover')) return
+              navigate(`/aduu?bulegId=${record.id}`)
+            },
+          })}
         />
       </Card>
 
