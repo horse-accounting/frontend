@@ -878,17 +878,17 @@
   text-align: center;
 }
 
+.pedigree-descendants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .pedigree-descendants-title {
   font-weight: 600;
   font-size: 13px;
-  margin-bottom: 8px;
   color: #595959;
-}
-
-.pedigree-descendants-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .pedigree-current {
@@ -899,6 +899,118 @@
 .pedigree-descendants {
   padding: 16px;
   border-top: 1px solid #e8e8e8;
+}
+
+/* Descendant tree diagram */
+
+.dtree-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.dtree-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 0 8px;
+}
+
+/* Vertical connector lines */
+.dtree-vline {
+  width: 2px;
+  height: 20px;
+  background: #bfbfbf;
+  flex-shrink: 0;
+}
+
+/* Children row */
+.dtree-children {
+  display: flex;
+}
+
+/* Horizontal connector: each branch draws a top border across its full width */
+.dtree-children > .dtree-branch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #bfbfbf;
+}
+
+/* First child: horizontal line only from center to right */
+.dtree-children > .dtree-branch:first-child::before {
+  left: 50%;
+}
+
+/* Last child: horizontal line only from left to center */
+.dtree-children > .dtree-branch:last-child::before {
+  right: 50%;
+}
+
+/* Only child: no horizontal line */
+.dtree-children > .dtree-branch:only-child::before {
+  display: none;
+}
+
+/* Node card */
+.dtree-node {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid;
+  text-align: center;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: box-shadow 0.15s;
+  position: relative;
+  z-index: 1;
+  background: #fff;
+}
+
+.dtree-node:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.dtree-node-current {
+  cursor: default;
+}
+
+.dtree-node-current:hover {
+  box-shadow: none;
+}
+
+.dtree-node-male {
+  border-color: #91caff;
+  background: #e6f4ff;
+}
+
+.dtree-node-female {
+  border-color: #ffadd2;
+  background: #fff0f6;
+}
+
+.dtree-node-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.dtree-node-male .dtree-node-name {
+  color: #1677ff;
+}
+
+.dtree-node-female .dtree-node-name {
+  color: #c41d7f;
+}
+
+.dtree-node-meta {
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-top: 2px;
 }
 
 /* Dark mode variants */
@@ -932,5 +1044,36 @@
 
 [data-theme='dark'] .pedigree-descendants {
   border-top-color: #424242;
+}
+
+[data-theme='dark'] .dtree-node-male {
+  border-color: #15395b;
+  background: #111d2c;
+}
+
+[data-theme='dark'] .dtree-node-female {
+  border-color: #441326;
+  background: #2a1125;
+}
+
+[data-theme='dark'] .dtree-node-male .dtree-node-name {
+  color: #8db1ff;
+}
+
+[data-theme='dark'] .dtree-node-female .dtree-node-name {
+  color: #f38cb5;
+}
+
+[data-theme='dark'] .dtree-node-meta {
+  color: #6b6b6b;
+}
+
+[data-theme='dark'] .dtree-node:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .dtree-vline,
+[data-theme='dark'] .dtree-children > .dtree-branch::before {
+  background: #424242;
 }
 

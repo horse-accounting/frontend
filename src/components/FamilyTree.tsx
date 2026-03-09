@@ -28,6 +28,8 @@ interface FamilyTreeProps {
   descendants: DescendantNode[]
   ancestorDepth: number
   onDepthChange: (depth: number) => void
+  descendantDepth: number
+  onDescendantDepthChange: (depth: number) => void
 }
 
 const huisLabels: Record<Huis, string> = {
@@ -68,12 +70,65 @@ function collectCells(
   }
 }
 
+// Recursive tree descendant branch
+function DescBranch({
+  node,
+  depth,
+  maxDepth,
+  navigate,
+}: {
+  node: DescendantNode
+  depth: number
+  maxDepth: number
+  navigate: (path: string) => void
+}) {
+  const isMale = node.huis === 'er'
+  const hasChildren = depth < maxDepth && node.children && node.children.length > 0
+
+  return (
+    <div className="dtree-branch">
+      {/* Vertical line up from this node to the horizontal connector */}
+      <div className="dtree-vline" />
+      <div
+        className={`dtree-node ${isMale ? 'dtree-node-male' : 'dtree-node-female'}`}
+        onClick={() => navigate(`/aduu/${node.id}`)}
+      >
+        <div className="dtree-node-name">{node.ner}</div>
+        <div className="dtree-node-meta">
+          {node.uulder && <>{node.uulder.name} · </>}
+          {node.tursunOn && <>{node.tursunOn} · </>}
+          {huisLabels[node.huis]}
+        </div>
+      </div>
+      {hasChildren && (
+        <>
+          {/* Vertical line down from this node to children connector */}
+          <div className="dtree-vline" />
+          <div className="dtree-children">
+            {node.children!.map((child) => (
+              <DescBranch
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                maxDepth={maxDepth}
+                navigate={navigate}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function FamilyTree({
   currentHorse,
   ancestors,
   descendants,
   ancestorDepth,
   onDepthChange,
+  descendantDepth,
+  onDescendantDepthChange,
 }: FamilyTreeProps) {
   const hasAncestors = ancestors.father || ancestors.mother
   const hasDescendants = descendants.length > 0
@@ -270,21 +325,41 @@ export function FamilyTree({
 
         {hasDescendants && (
           <div className="pedigree-descendants">
-            <div className="pedigree-descendants-title">
-              Үр төл ({descendants.length})
+            <div className="pedigree-descendants-header">
+              <div className="pedigree-descendants-title">
+                Үр төл ({descendants.length})
+              </div>
+              <Select
+                value={descendantDepth}
+                onChange={onDescendantDepthChange}
+                size="small"
+                style={{ width: 100 }}
+                options={[
+                  { value: 1, label: '1 үе' },
+                  { value: 2, label: '2 үе' },
+                  { value: 3, label: '3 үе' },
+                  { value: 4, label: '4 үе' },
+                ]}
+              />
             </div>
-            <div className="pedigree-descendants-list">
-              {descendants.map((d) => (
-                <Tag
-                  key={d.id}
-                  color={d.huis === 'er' ? 'blue' : 'magenta'}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/aduu/${d.id}`)}
-                >
-                  {d.ner}
-                  {d.tursunOn ? ` (${d.tursunOn})` : ''}
-                </Tag>
-              ))}
+            <div className="dtree-root">
+              <div
+                className={`dtree-node ${currentHorse.huis === 'er' ? 'dtree-node-male' : 'dtree-node-female'} dtree-node-current`}
+              >
+                <div className="dtree-node-name">{currentHorse.ner}</div>
+              </div>
+              <div className="dtree-vline" />
+              <div className="dtree-children">
+                {descendants.map((d) => (
+                  <DescBranch
+                    key={d.id}
+                    node={d}
+                    depth={1}
+                    maxDepth={descendantDepth}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}
