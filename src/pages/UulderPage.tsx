@@ -89,12 +89,8 @@ export function UulderPage() {
       title: 'Нэр',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: Uulder) => (
-        <Text
-          strong
-          style={{ cursor: 'pointer', color: '#1890ff' }}
-          onClick={() => navigate(`/aduu?uulderId=${record.id}`)}
-        >
+      render: (name: string) => (
+        <Text strong style={{ color: '#1890ff' }}>
           {name}
         </Text>
       ),
@@ -223,6 +219,13 @@ export function UulderPage() {
           }}
           size="middle"
           rowClassName={() => 'table-row'}
+          onRow={(record) => ({
+            style: { cursor: 'pointer' },
+            onClick: (e) => {
+              if ((e.target as HTMLElement).closest('button, .ant-popover')) return
+              navigate(`/aduu?uulderId=${record.id}`)
+            },
+          })}
         />
       </Card>
 

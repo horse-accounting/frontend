@@ -55,7 +55,8 @@ export function AduuDetailPage() {
 
   const aduuId = Number(id)
   const { data: aduu, isLoading, error, refetch } = useAduu(aduuId)
-  const { data: familyTree } = useFamilyTree(aduuId)
+  const [ancestorDepth, setAncestorDepth] = useState(3)
+  const { data: familyTree } = useFamilyTree(aduuId, { ancestorDepth })
   const downloadPdf = useDownloadAduuPdf()
 
   if (isLoading) {
@@ -450,6 +451,8 @@ export function AduuDetailPage() {
           }}
           ancestors={familyTree.ancestors}
           descendants={familyTree.descendants}
+          ancestorDepth={ancestorDepth}
+          onDepthChange={setAncestorDepth}
         />
       )}
 

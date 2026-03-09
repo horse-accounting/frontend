@@ -523,6 +523,14 @@
   background: transparent !important;
 }
 
+/* Fixed/sticky баганууд hover үед background-тай байх ёстой (scroll-ийн доорх өгөгдөл нэвтрэхээс сэргийлэх) */
+.table-card .ant-table-tbody > tr.table-row:hover > td.ant-table-cell-fix-left,
+.table-card .ant-table-tbody > tr.table-row:hover > td.ant-table-cell-fix-right,
+.table-card .ant-table-tbody > tr.table-row:hover > td.ant-table-cell-fix-start,
+.table-card .ant-table-tbody > tr.table-row:hover > td.ant-table-cell-fix-end {
+  background: var(--bg-tertiary) !important;
+}
+
 /* Pagination styling */
 .table-card .ant-pagination {
   margin: 16px !important;
@@ -762,376 +770,142 @@
   }
 }
 
-/* ==================== Family Tree ==================== */
-.family-tree-card {
+/* ==================== Pedigree Table ==================== */
+.pedigree-card {
   margin-bottom: 24px;
 }
 
-.family-tree-card .ant-card-body {
-  padding: 0 !important;
+.pedigree-table-wrapper {
+  overflow-x: auto;
+  padding: 16px;
 }
 
-/* Viewport - scrollable/pannable area */
-.ft-viewport {
+.pedigree-table {
+  border-collapse: collapse;
   width: 100%;
-  height: 600px;
-  overflow: hidden;
-  position: relative;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 0 0 8px 8px;
-  user-select: none;
+  min-width: 600px;
 }
 
-[data-theme='dark'] .ft-viewport {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+.pedigree-table td {
+  border: 1px solid #e8e8e8;
+  vertical-align: middle;
 }
 
-/* Canvas - transformed content */
-.ft-canvas {
+.pedigree-cell {
+  padding: 8px 12px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.pedigree-cell:hover:not(.pedigree-empty):not(.pedigree-current) {
+  box-shadow: inset 0 0 0 2px rgba(22, 119, 255, 0.3);
+}
+
+.pedigree-cell-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  padding: 40px 20px;
-  transform-origin: center center;
-  transition: transform 0.1s ease-out;
-  min-width: max-content;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* ---- Node card ---- */
-.ft-node {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 2px solid #dee2e6;
-  white-space: nowrap;
-  transition: box-shadow 0.2s, transform 0.2s;
-  min-width: 130px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.ft-node:hover:not(.ft-empty) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
-
-.ft-male {
-  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
-  border-color: #2471a3;
-  color: #fff;
-}
-
-.ft-female {
-  background: linear-gradient(135deg, #c44569 0%, #e84393 100%);
-  border-color: #a93b5e;
-  color: #fff;
-}
-
-.ft-empty {
-  background: #e9ecef;
-  border-color: #ced4da;
-  color: #868e96;
-  cursor: default !important;
-  opacity: 0.6;
-}
-
-[data-theme='dark'] .ft-empty {
-  background: #343a40;
-  border-color: #495057;
-  color: #adb5bd;
-}
-
-.ft-main {
-  border-width: 3px;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
-  position: relative;
-}
-
-.ft-node-emoji {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.ft-empty .ft-node-emoji {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.ft-node-info {
-  display: flex;
-  flex-direction: column;
+  text-align: center;
+  min-width: 100px;
   gap: 2px;
 }
 
-.ft-node-name {
+.pedigree-male {
+  background: #f0f5ff;
+  color: #1d39c4;
+}
+
+.pedigree-female {
+  background: #fff0f6;
+  color: #c41d7f;
+}
+
+.pedigree-name {
   font-weight: 600;
   font-size: 14px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.ft-empty .ft-node-name {
-  text-shadow: none;
+.pedigree-name-empty {
+  color: #adb5bd;
+  font-style: italic;
+  font-size: 12px;
 }
 
-.ft-node-huis {
+.pedigree-uulder {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.pedigree-year {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.pedigree-huis {
   font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.85;
+  opacity: 0.6;
 }
 
-/* ---- Current horse highlight ---- */
-.ft-current {
+.pedigree-empty {
+  background: #fafafa;
+  text-align: center;
+}
+
+.pedigree-descendants-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #595959;
+}
+
+.pedigree-descendants-list {
   display: flex;
-  justify-content: center;
-  position: relative;
-  padding: 24px 0;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* ---- Ancestor tree (bottom-up) ---- */
-.ft-ancestors {
-  display: flex;
-  justify-content: center;
+.pedigree-current {
+  background: #e6f4ff;
+  border-right: 3px solid #1677ff;
 }
 
-.ft-ancestor-branch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.pedigree-descendants {
+  padding: 16px;
+  border-top: 1px solid #e8e8e8;
 }
 
-.ft-ancestor-parents {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
+/* Dark mode variants */
+[data-theme='dark'] .pedigree-table td {
+  border-color: #424242;
 }
 
-.ft-ancestor-self {
-  position: relative;
-  padding-bottom: 24px;
+[data-theme='dark'] .pedigree-male {
+  background: #111d2c;
+  color: #8db1ff;
 }
 
-/* Vertical line from ancestor down to child */
-.ft-ancestor-self::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
+[data-theme='dark'] .pedigree-female {
+  background: #2a1125;
+  color: #f38cb5;
 }
 
-[data-theme='dark'] .ft-ancestor-self::after {
-  background: #74b9ff;
+[data-theme='dark'] .pedigree-empty {
+  background: #1f1f1f;
 }
 
-/* Horizontal connector between parents */
-.ft-ancestor-parents > .ft-ancestor-branch {
-  position: relative;
+[data-theme='dark'] .pedigree-name-empty {
+  color: #6b6b6b;
 }
 
-.ft-ancestor-parents > .ft-ancestor-branch::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  height: 2px;
-  background: #adb5bd;
+[data-theme='dark'] .pedigree-descendants-title {
+  color: #a6a6a6;
 }
 
-[data-theme='dark'] .ft-ancestor-parents > .ft-ancestor-branch::before {
-  background: #74b9ff;
+[data-theme='dark'] .pedigree-current {
+  background: #111d2c;
+  border-right-color: #177ddc;
 }
 
-.ft-ancestor-parents > .ft-ancestor-branch:first-child::before {
-  left: 50%;
-  right: -8px;
-}
-
-.ft-ancestor-parents > .ft-ancestor-branch:last-child::before {
-  right: 50%;
-  left: -8px;
-}
-
-/* Vertical line from horizontal connector up to parent */
-.ft-ancestor-parents > .ft-ancestor-branch > .ft-ancestor-self::before {
-  content: '';
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-ancestor-parents > .ft-ancestor-branch > .ft-ancestor-self::before {
-  background: #74b9ff;
-}
-
-/* Top-level ancestor parents leading into current horse */
-.ft-ancestors > .ft-ancestor-parents {
-  position: relative;
-  padding-bottom: 24px;
-}
-
-.ft-ancestors > .ft-ancestor-parents::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-ancestors > .ft-ancestor-parents::after {
-  background: #74b9ff;
-}
-
-.ft-ancestors > .ft-ancestor-parents > .ft-ancestor-branch {
-  position: relative;
-}
-
-.ft-ancestors > .ft-ancestor-parents > .ft-ancestor-branch::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  height: 2px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-ancestors > .ft-ancestor-parents > .ft-ancestor-branch::after {
-  background: #74b9ff;
-}
-
-.ft-ancestors > .ft-ancestor-parents > .ft-ancestor-branch:first-child::after {
-  left: 50%;
-  right: -8px;
-}
-
-.ft-ancestors > .ft-ancestor-parents > .ft-ancestor-branch:last-child::after {
-  right: 50%;
-  left: -8px;
-}
-
-/* ---- Descendant tree (top-down) ---- */
-.ft-descendants {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  padding-top: 24px;
-}
-
-/* Vertical line from current horse down to descendants */
-.ft-descendants::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-descendants::before {
-  background: #74b9ff;
-}
-
-.ft-descendant-branch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.ft-descendant-self {
-  position: relative;
-}
-
-.ft-descendant-children {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  position: relative;
-  padding-top: 24px;
-}
-
-/* Vertical line from parent down to horizontal connector */
-.ft-descendant-children::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-descendant-children::before {
-  background: #74b9ff;
-}
-
-/* Horizontal connector between children */
-.ft-descendant-children > .ft-descendant-branch {
-  position: relative;
-}
-
-.ft-descendant-children > .ft-descendant-branch::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  height: 2px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-descendant-children > .ft-descendant-branch::before {
-  background: #74b9ff;
-}
-
-.ft-descendant-children > .ft-descendant-branch:first-child:last-child::before {
-  display: none;
-}
-
-.ft-descendant-children > .ft-descendant-branch:first-child::before {
-  left: 50%;
-  right: -8px;
-}
-
-.ft-descendant-children > .ft-descendant-branch:last-child::before {
-  right: 50%;
-  left: -8px;
-}
-
-.ft-descendant-children > .ft-descendant-branch:not(:first-child):not(:last-child)::before {
-  left: -8px;
-  right: -8px;
-}
-
-/* Vertical line from horizontal connector down to child node */
-.ft-descendant-children > .ft-descendant-branch > .ft-descendant-self::before {
-  content: '';
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  width: 2px;
-  height: 24px;
-  background: #adb5bd;
-}
-
-[data-theme='dark'] .ft-descendant-children > .ft-descendant-branch > .ft-descendant-self::before {
-  background: #74b9ff;
+[data-theme='dark'] .pedigree-descendants {
+  border-top-color: #424242;
 }
 
