@@ -218,6 +218,7 @@ export interface Aduu {
   tamga?: string
   uraldsan: boolean
   tailbar?: string
+  unaganEzen?: string
   ooriinBish?: boolean
   ezniiNer?: string
   zupisnuud?: Zurag[]
@@ -247,6 +248,7 @@ export interface AduuQueryParams {
   zarlagaShaltgaan?: ZarlagaShaltgaan
   tursunOnMin?: number
   tursunOnMax?: number
+  unaganEzen?: string
 }
 
 export interface CreateAduuRequest {
@@ -262,6 +264,7 @@ export interface CreateAduuRequest {
   tamga?: string
   uraldsan?: boolean
   tailbar?: string
+  unaganEzen?: string
   ooriinBish?: boolean
   ezniiNer?: string
   uulderId?: number
@@ -283,6 +286,7 @@ export interface UpdateAduuRequest {
   tamga?: string
   uraldsan?: boolean
   tailbar?: string
+  unaganEzen?: string
   ooriinBish?: boolean
   ezniiNer?: string | null
   uulderId?: number
