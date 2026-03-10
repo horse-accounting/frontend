@@ -99,6 +99,7 @@ export function AduunuudPage() {
   const tursunOnMin = getNum(searchParams, 'tursunOnMin')
   const tursunOnMax = getNum(searchParams, 'tursunOnMax')
   const zarlagaShaltgaan = getStr(searchParams, 'zarlagaShaltgaan') as ZarlagaShaltgaan | undefined
+  const unaganEzen = getStr(searchParams, 'unaganEzen')
 
   // --- Local filter state: хэрэглэгч өөрчлөхөд зөвхөн энд хадгална ---
   const [fSearch, setFSearch] = useState(search || '')
@@ -109,6 +110,7 @@ export function AduunuudPage() {
   const [fTursunOnMin, setFTursunOnMin] = useState<number | undefined>(tursunOnMin)
   const [fTursunOnMax, setFTursunOnMax] = useState<number | undefined>(tursunOnMax)
   const [fZarlagaShaltgaan, setFZarlagaShaltgaan] = useState<ZarlagaShaltgaan | undefined>(zarlagaShaltgaan)
+  const [fUnaganEzen, setFUnaganEzen] = useState(unaganEzen || '')
 
   // URL params гаднаас өөрчлөгдөхөд (жнь: BulegPage-с navigate хийхэд) local state-г sync хийнэ
   useEffect(() => {
@@ -120,6 +122,7 @@ export function AduunuudPage() {
     setFTursunOnMin(tursunOnMin)
     setFTursunOnMax(tursunOnMax)
     setFZarlagaShaltgaan(zarlagaShaltgaan)
+    setFUnaganEzen(unaganEzen || '')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
@@ -141,12 +144,13 @@ export function AduunuudPage() {
         if (fTursunOnMin) next.set('tursunOnMin', String(fTursunOnMin))
         if (fTursunOnMax) next.set('tursunOnMax', String(fTursunOnMax))
         if (fZarlagaShaltgaan) next.set('zarlagaShaltgaan', fZarlagaShaltgaan)
+        if (fUnaganEzen) next.set('unaganEzen', fUnaganEzen)
         next.set('page', String(pageOverride ?? 1))
         next.set('limit', String(limit))
         return next
       })
     },
-    [fSearch, fHuis, fUulderId, fBulegId, fUraldsan, fTursunOnMin, fTursunOnMax, fZarlagaShaltgaan, limit, setSearchParams],
+    [fSearch, fHuis, fUulderId, fBulegId, fUraldsan, fTursunOnMin, fTursunOnMax, fZarlagaShaltgaan, fUnaganEzen, limit, setSearchParams],
   )
 
   const { data, isLoading, refetch } = useAduunuud({
@@ -160,6 +164,7 @@ export function AduunuudPage() {
     tursunOnMin,
     tursunOnMax,
     zarlagaShaltgaan,
+    unaganEzen: unaganEzen || undefined,
   })
 
   const { data: uulders } = useUulders()
@@ -180,6 +185,7 @@ export function AduunuudPage() {
     setFTursunOnMin(undefined)
     setFTursunOnMax(undefined)
     setFZarlagaShaltgaan(undefined)
+    setFUnaganEzen('')
     setSearchParams(new URLSearchParams())
   }
 
@@ -371,6 +377,15 @@ export function AduunuudPage() {
       ),
     },
     {
+      title: 'Унаган эзэн',
+      dataIndex: 'unaganEzen',
+      key: 'unaganEzen',
+      width: 130,
+      render: (unaganEzen: string) => (
+        <Text>{unaganEzen || <Text type="secondary">—</Text>}</Text>
+      ),
+    },
+    {
       title: 'Эцэг / Эх',
       key: 'parents',
       width: 180,
@@ -547,6 +562,16 @@ export function AduunuudPage() {
               max={new Date().getFullYear()}
               value={fTursunOnMax}
               onChange={(v) => setFTursunOnMax(v ?? undefined)}
+            />
+          </Col>
+          <Col xs={12} sm={6} md={4} lg={3}>
+            <Input
+              placeholder="Унаган эзэн"
+              value={fUnaganEzen}
+              onChange={(e) => setFUnaganEzen(e.target.value)}
+              onPressEnter={handleSearch}
+              allowClear
+              onClear={() => setFUnaganEzen('')}
             />
           </Col>
           <Col xs={12} sm={6} md={4} lg={3}>

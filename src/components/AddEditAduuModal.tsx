@@ -129,6 +129,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
           tailbar: aduu.tailbar,
           ooriinBish: aduu.ooriinBish || false,
           ezniiNer: aduu.ezniiNer,
+          unaganEzen: aduu.unaganEzen,
           uulderId: aduu.uulderId,
           bulegId: aduu.bulegId,
           fatherId: aduu.fatherId,
@@ -277,11 +278,11 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const fatherOptions = aduunuud
     .filter((a) => a.huis === 'er' && a.id !== aduu?.id)
-    .map((a) => ({ value: a.id, label: a.ner }))
+    .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
 
   const motherOptions = aduunuud
     .filter((a) => a.huis === 'em' && a.id !== aduu?.id)
-    .map((a) => ({ value: a.id, label: a.ner }))
+    .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
 
   const uploadButton = (
     <div>
@@ -533,6 +534,13 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
               </Form.Item>
             </Col>
           )}
+        </Row>
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item name="unaganEzen" label="Унаган эзэн">
+              <Input placeholder="Унаган эзний нэр" />
+            </Form.Item>
+          </Col>
         </Row>
 
         <Divider style={{ margin: '8px 0 24px' }} />

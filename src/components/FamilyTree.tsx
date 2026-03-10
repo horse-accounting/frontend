@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { Card, Empty, Select, Tag, App } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { Card, Empty, Select, Tag, App, Popover, Button, Space, Modal } from 'antd'
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   useUpdateAduu,
+  useAduunuud,
   aduuKeys,
   type AncestorNode,
   type DescendantNode,
@@ -137,22 +138,54 @@ export function FamilyTree({
   const updateAduu = useUpdateAduu()
   const { message } = App.useApp()
 
+  const { data: aduunuudData } = useAduunuud({ limit: 200 })
+  const aduunuud = aduunuudData?.aduunuud || []
+
   // Modal state for adding a parent
   const [modalOpen, setModalOpen] = useState(false)
+  const [selectMode, setSelectMode] = useState(false)
   const [addParentInfo, setAddParentInfo] = useState<{
     childId: number
     parentType: 'father' | 'mother'
     huis: Huis
   } | null>(null)
+  const [popoverOpen, setPopoverOpen] = useState<string | null>(null)
 
-  const handleEmptyCellClick = (childId: number | null, parentType: 'father' | 'mother') => {
-    if (!childId) return
+  const openAddNew = (childId: number, parentType: 'father' | 'mother') => {
     setAddParentInfo({
       childId,
       parentType,
       huis: parentType === 'father' ? 'er' : 'em',
     })
+    setPopoverOpen(null)
+    setSelectMode(false)
     setModalOpen(true)
+  }
+
+  const openSelectExisting = (childId: number, parentType: 'father' | 'mother') => {
+    setAddParentInfo({
+      childId,
+      parentType,
+      huis: parentType === 'father' ? 'er' : 'em',
+    })
+    setPopoverOpen(null)
+    setSelectMode(true)
+  }
+
+  const handleSelectParent = async (selectedAduuId: number) => {
+    if (!addParentInfo) return
+    try {
+      const updateData = addParentInfo.parentType === 'father'
+        ? { fatherId: selectedAduuId }
+        : { motherId: selectedAduuId }
+      await updateAduu.mutateAsync({ id: addParentInfo.childId, data: updateData })
+      queryClient.invalidateQueries({ queryKey: aduuKeys.familyTrees() })
+      message.success('Эцэг/эх амжилттай холбогдлоо')
+    } catch {
+      message.error('Эцэг/эх холбоход алдаа гарлаа')
+    }
+    setSelectMode(false)
+    setAddParentInfo(null)
   }
 
   const handleModalSuccess = async (newAduu?: Aduu) => {
@@ -209,23 +242,48 @@ export function FamilyTree({
 
   const renderCell = (cell: FlatCell) => {
     if (!cell.node) {
+      const cellKey = `${cell.col}-${cell.row}`
+      const popoverContent = cell.childId ? (
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Button
+            block
+            icon={<PlusOutlined />}
+            onClick={() => openAddNew(cell.childId!, cell.parentType)}
+          >
+            Шинэ нэмэх
+          </Button>
+          <Button
+            block
+            icon={<SearchOutlined />}
+            onClick={() => openSelectExisting(cell.childId!, cell.parentType)}
+          >
+            Сонгох
+          </Button>
+        </Space>
+      ) : null
+
       return (
         <td
-          key={`cell-${cell.col}-${cell.row}`}
+          key={`cell-${cellKey}`}
           rowSpan={cell.rowSpan}
           className="pedigree-td"
         >
-          <div
-            className="pedigree-cell pedigree-empty pedigree-empty-clickable"
-            onClick={() => handleEmptyCellClick(cell.childId, cell.parentType)}
+          <Popover
+            content={popoverContent}
+            title={cell.parentType === 'father' ? 'Эцэг' : 'Эх'}
+            trigger="click"
+            open={popoverOpen === cellKey}
+            onOpenChange={(open) => setPopoverOpen(open ? cellKey : null)}
           >
-            <div className="pedigree-cell-content">
-              <PlusOutlined className="pedigree-add-icon" />
-              <span className="pedigree-name-empty">
-                {cell.parentType === 'father' ? 'Эцэг нэмэх' : 'Эх нэмэх'}
-              </span>
+            <div className="pedigree-cell pedigree-empty pedigree-empty-clickable">
+              <div className="pedigree-cell-content">
+                <PlusOutlined className="pedigree-add-icon" />
+                <span className="pedigree-name-empty">
+                  {cell.parentType === 'father' ? 'Эцэг нэмэх' : 'Эх нэмэх'}
+                </span>
+              </div>
             </div>
-          </div>
+          </Popover>
         </td>
       )
     }
@@ -372,6 +430,30 @@ export function FamilyTree({
         onSuccess={handleModalSuccess}
         defaultHuis={addParentInfo?.huis}
       />
+
+      <Modal
+        title={addParentInfo?.parentType === 'father' ? 'Эцэг сонгох' : 'Эх сонгох'}
+        open={selectMode}
+        onCancel={() => { setSelectMode(false); setAddParentInfo(null) }}
+        footer={null}
+        width={400}
+        destroyOnHidden
+      >
+        <Select
+          showSearch
+          optionFilterProp="label"
+          placeholder="Адуу хайх..."
+          style={{ width: '100%' }}
+          size="large"
+          onChange={handleSelectParent}
+          options={aduunuud
+            .filter((a) => a.huis === addParentInfo?.huis && a.id !== currentHorse.id)
+            .map((a) => ({
+              value: a.id,
+              label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}`,
+            }))}
+        />
+      </Modal>
     </>
   )
 }
