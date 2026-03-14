@@ -315,13 +315,21 @@ export function AduunuudPage() {
       ),
     },
     {
-      title: 'Төрсөн он',
-      dataIndex: 'tursunOn',
-      key: 'tursunOn',
-      width: 100,
+      title: 'Нас зэрэг',
+      key: 'nasHuis',
+      width: 130,
       align: 'center',
-      render: (tursunOn: number) => (
-        <Text>{tursunOn || <Text type="secondary">—</Text>}</Text>
+      render: (_, record) => (
+        <div>
+          {record.nasHuis ? (
+            <>
+              <Text strong style={{ display: 'block' }}>{record.nasHuis}</Text>
+              <Text type="secondary" style={{ fontSize: 11 }}>{record.tursunOn} он</Text>
+            </>
+          ) : (
+            <Text type="secondary">—</Text>
+          )}
+        </div>
       ),
     },
     {

@@ -70,6 +70,27 @@ const huisOptions: { value: Huis; label: string }[] = [
   { value: 'em', label: 'Эм' },
 ]
 
+const NAS_HUIS_ER: Record<number, string> = { 0: 'Эр унага', 1: 'Эр даага', 2: 'Шүдлэн үрээ', 3: 'Хязаалан үрээ', 4: 'Соёолон үрээ' }
+const NAS_HUIS_EM: Record<number, string> = { 0: 'Эм унага', 1: 'Эм даага', 2: 'Шүдлэн байдас', 3: 'Хязаалан байдас', 4: 'Соёолон байдас' }
+
+const getNasHuisFromYear = (tursunOn: number | undefined, huis: Huis | undefined): string | undefined => {
+  if (!tursunOn || !huis) return undefined
+  const nas = new Date().getFullYear() - tursunOn
+  if (nas < 0) return undefined
+  const map = huis === 'er' ? NAS_HUIS_ER : NAS_HUIS_EM
+  return map[nas] ?? (huis === 'em' ? `${nas} настай гүү` : `${nas} настай`)
+}
+
+const getNasHuisOptions = (huis: Huis | undefined) => {
+  if (!huis) return []
+  const map = huis === 'er' ? NAS_HUIS_ER : NAS_HUIS_EM
+  const currentYear = new Date().getFullYear()
+  return Object.entries(map).map(([age, label]) => ({
+    value: currentYear - Number(age),
+    label,
+  }))
+}
+
 const zarlagaOptions = Object.entries(zarlagaShaltgaanLabels).map(([value, label]) => ({
   value: value as ZarlagaShaltgaan,
   label,
@@ -110,6 +131,8 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const zarlagaShaltgaan = Form.useWatch('zarlagaShaltgaan', form)
   const ooriinBish = Form.useWatch('ooriinBish', form)
+  const watchedHuis = Form.useWatch('huis', form)
+  const watchedTursunOn = Form.useWatch('tursunOn', form)
 
   useEffect(() => {
     if (open) {
@@ -494,12 +517,26 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
             <Form.Item name="zus" label="Зүс">
               <Input placeholder="Хүрэн, Халтар, Хар гэх мэт" />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
+            <Form.Item label="Нас зэрэг">
+              <Select
+                placeholder={watchedHuis ? 'Сонгох' : 'Хүйс сонго'}
+                allowClear
+                disabled={!watchedHuis}
+                value={watchedTursunOn && watchedHuis ? watchedTursunOn : undefined}
+                options={getNasHuisOptions(watchedHuis)}
+                onChange={(value) => {
+                  form.setFieldsValue({ tursunOn: value })
+                }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={6}>
             <Form.Item name="tursunOn" label="Төрсөн он">
               <InputNumber
                 placeholder="2020"
@@ -509,12 +546,18 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={6}>
             <Form.Item name="tursunGazar" label="Төрсөн газар">
               <Input placeholder="Аймаг, сум" />
             </Form.Item>
           </Col>
         </Row>
+        {watchedTursunOn && watchedHuis && (
+          <Text type="secondary" style={{ marginTop: -12, marginBottom: 12, display: 'block' }}>
+            {getNasHuisFromYear(watchedTursunOn, watchedHuis)}
+            {watchedTursunOn ? ` (${watchedTursunOn} он)` : ''}
+          </Text>
+        )}
 
         <Divider style={{ margin: '8px 0 24px' }} />
 
