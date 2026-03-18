@@ -112,9 +112,6 @@ export function AduuDetailPage() {
     message.success('Адуу амжилттай шинэчлэгдлээ')
   }
 
-  // Age from backend computed fields
-  const age = aduu.nas ?? (aduu.tursunOn ? new Date().getFullYear() - aduu.tursunOn : null)
-
   return (
     <div className="page-container">
       {/* Header */}
