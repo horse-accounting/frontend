@@ -19,8 +19,6 @@ import {
   EditOutlined,
   FilePdfOutlined,
   EnvironmentOutlined,
-  ManOutlined,
-  WomanOutlined,
   IdcardOutlined,
   ExperimentOutlined,
   TagOutlined,
@@ -114,10 +112,8 @@ export function AduuDetailPage() {
     message.success('Адуу амжилттай шинэчлэгдлээ')
   }
 
-  // Calculate age
-  const currentYear = new Date().getFullYear()
-  const endYear = aduu.zarlagaOn || currentYear
-  const age = aduu.tursunOn ? endYear - aduu.tursunOn : null
+  // Age from backend computed fields
+  const age = aduu.nas ?? (aduu.tursunOn ? new Date().getFullYear() - aduu.tursunOn : null)
 
   return (
     <div className="page-container">
@@ -194,12 +190,11 @@ export function AduuDetailPage() {
                 </Space>
               </div>
               <Row gutter={[24, 16]}>
-                {age !== null && (
+                {aduu.nasHuis && (
                   <Col>
                     <Statistic
-                      title="Нас"
-                      value={age}
-                      suffix="настай"
+                      title="Нас зэрэг"
+                      value={aduu.nasHuis}
                       styles={{ content: { fontSize: 20 } }}
                     />
                   </Col>
@@ -317,52 +312,6 @@ export function AduuDetailPage() {
 
         {/* Right Column */}
         <Col xs={24} lg={16}>
-          {/* Parents */}
-          <Card title="Эцэг эх" size="small" style={{ marginBottom: 24 }}>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12}>
-                <div
-                  className="detail-parent-card detail-parent-father"
-                  onClick={() => aduu.father && navigate(`/aduu/${aduu.father.id}`)}
-                  style={{ cursor: aduu.father ? 'pointer' : 'default' }}
-                >
-                  <div className="detail-parent-icon father">
-                    <ManOutlined />
-                  </div>
-                  <div className="detail-parent-info">
-                    <Text type="secondary">Эцэг (Эр)</Text>
-                    <Text strong style={{ fontSize: 16 }}>{aduu.father?.ner || '—'}</Text>
-                    {aduu.father && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Дэлгэрэнгүй харах →
-                      </Text>
-                    )}
-                  </div>
-                </div>
-              </Col>
-              <Col xs={24} sm={12}>
-                <div
-                  className="detail-parent-card detail-parent-mother"
-                  onClick={() => aduu.mother && navigate(`/aduu/${aduu.mother.id}`)}
-                  style={{ cursor: aduu.mother ? 'pointer' : 'default' }}
-                >
-                  <div className="detail-parent-icon mother">
-                    <WomanOutlined />
-                  </div>
-                  <div className="detail-parent-info">
-                    <Text type="secondary">Эх (Эм)</Text>
-                    <Text strong style={{ fontSize: 16 }}>{aduu.mother?.ner || '—'}</Text>
-                    {aduu.mother && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Дэлгэрэнгүй харах →
-                      </Text>
-                    )}
-                  </div>
-                </div>
-              </Col>
-            </Row>
-          </Card>
-
           {/* Children (Descendants) */}
           {familyTree && familyTree.descendants && familyTree.descendants.length > 0 && (
             <Card

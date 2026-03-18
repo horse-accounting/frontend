@@ -209,6 +209,8 @@ export interface Aduu {
   ner: string
   huis: Huis
   tursunOn?: number
+  nas?: number
+  nasHuis?: string
   zarlagaOn?: number
   zarlagaShaltgaan?: ZarlagaShaltgaan
   tursunGazar?: string
@@ -255,6 +257,7 @@ export interface CreateAduuRequest {
   ner: string
   huis: Huis
   tursunOn?: number
+  nasHuis?: string
   zarlagaOn?: number
   zarlagaShaltgaan?: ZarlagaShaltgaan
   tursunGazar?: string
@@ -277,6 +280,7 @@ export interface UpdateAduuRequest {
   ner?: string
   huis?: Huis
   tursunOn?: number
+  nasHuis?: string
   zarlagaOn?: number | null
   zarlagaShaltgaan?: ZarlagaShaltgaan | null
   tursunGazar?: string
@@ -305,6 +309,8 @@ export interface AncestorNode {
   ner: string
   huis: Huis
   tursunOn?: number
+  nas?: number
+  nasHuis?: string
   zus?: string
   uulder?: { id: number; name: string }
   father?: AncestorNode
@@ -316,6 +322,8 @@ export interface DescendantNode {
   ner: string
   huis: Huis
   tursunOn?: number
+  nas?: number
+  nasHuis?: string
   zus?: string
   uulder?: { id: number; name: string }
   children?: DescendantNode[]

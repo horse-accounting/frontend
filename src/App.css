@@ -495,6 +495,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 4px var(--shadow-color);
+  isolation: isolate;
 }
 
 .table-card .ant-table {
@@ -505,6 +506,8 @@
   background: var(--bg-secondary) !important;
   font-weight: 600;
   padding: 14px 16px;
+  position: relative;
+  z-index: 3 !important;
 }
 
 .table-card .ant-table-tbody > tr > td {
