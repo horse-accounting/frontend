@@ -73,23 +73,16 @@ const huisOptions: { value: Huis; label: string }[] = [
 const NAS_HUIS_ER: Record<number, string> = { 0: 'Эр унага', 1: 'Эр даага', 2: 'Шүдлэн үрээ', 3: 'Хязаалан үрээ', 4: 'Соёолон үрээ' }
 const NAS_HUIS_EM: Record<number, string> = { 0: 'Эм унага', 1: 'Эм даага', 2: 'Шүдлэн байдас', 3: 'Хязаалан байдас', 4: 'Соёолон байдас' }
 
-const getNasHuisFromYear = (tursunOn: number | undefined, huis: Huis | undefined): string | undefined => {
-  if (!tursunOn || !huis) return undefined
-  const nas = new Date().getFullYear() - tursunOn
-  if (nas < 0) return undefined
-  const map = huis === 'er' ? NAS_HUIS_ER : NAS_HUIS_EM
-  return map[nas] ?? (huis === 'em' ? `${nas} настай гүү` : `${nas} настай`)
-}
-
-const getNasHuisOptions = (huis: Huis | undefined) => {
-  if (!huis) return []
-  const map = huis === 'er' ? NAS_HUIS_ER : NAS_HUIS_EM
+const NAS_HUIS_COMBINED_OPTIONS = (() => {
   const currentYear = new Date().getFullYear()
-  return Object.entries(map).map(([age, label]) => ({
-    value: currentYear - Number(age),
-    label,
-  }))
-}
+  const options: { value: string; label: string }[] = []
+  for (let age = 0; age <= 4; age++) {
+    options.push({ value: `er-${age}`, label: `${NAS_HUIS_ER[age]} (${currentYear - age})` })
+    options.push({ value: `em-${age}`, label: `${NAS_HUIS_EM[age]} (${currentYear - age})` })
+  }
+  options.push({ value: 'buduurs', label: 'Бүдүүрсэн (5+ нас)' })
+  return options
+})()
 
 const zarlagaOptions = Object.entries(zarlagaShaltgaanLabels).map(([value, label]) => ({
   value: value as ZarlagaShaltgaan,
@@ -114,6 +107,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
   const [editingTailbar, setEditingTailbar] = useState<number | null>(null)
+  const [nasHuisSelection, setNasHuisSelection] = useState<string | undefined>(undefined)
 
   const { message } = App.useApp()
 
@@ -131,8 +125,6 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const zarlagaShaltgaan = Form.useWatch('zarlagaShaltgaan', form)
   const ooriinBish = Form.useWatch('ooriinBish', form)
-  const watchedHuis = Form.useWatch('huis', form)
-  const watchedTursunOn = Form.useWatch('tursunOn', form)
 
   useEffect(() => {
     if (open) {
@@ -165,12 +157,23 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
             tailbar: z.tailbar,
           }))
         )
+        if (aduu.huis && aduu.tursunOn) {
+          const age = new Date().getFullYear() - aduu.tursunOn
+          if (age >= 0 && age <= 4) {
+            setNasHuisSelection(`${aduu.huis}-${age}`)
+          } else {
+            setNasHuisSelection('buduurs')
+          }
+        } else {
+          setNasHuisSelection(undefined)
+        }
       } else {
         form.resetFields()
         if (defaultHuis) {
           form.setFieldsValue({ huis: defaultHuis })
         }
         setImages([])
+        setNasHuisSelection(undefined)
       }
       setUploadingCount(0)
       setEditingTailbar(null)
@@ -297,6 +300,17 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
     setEditingTailbar(null)
   }
 
+  const handleNasHuisChange = (value: string | undefined) => {
+    setNasHuisSelection(value)
+    if (!value || value === 'buduurs') {
+      form.setFieldsValue({ huis: undefined, tursunOn: undefined })
+      return
+    }
+    const [huis, ageStr] = value.split('-')
+    const tursunOn = new Date().getFullYear() - Number(ageStr)
+    form.setFieldsValue({ huis: huis as Huis, tursunOn })
+  }
+
   const isLoading = createAduu.isPending || updateAduu.isPending
 
   const fatherOptions = aduunuud
@@ -331,6 +345,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
       width={800}
       destroyOnHidden
       styles={{
+        header: { position: 'relative', zIndex: 1 },
         body: { maxHeight: '70vh', overflowY: 'auto', paddingRight: 8 },
       }}
     >
@@ -484,16 +499,49 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
               <Input placeholder="Адууны нэр" />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="huis"
-              label="Хүйс"
-              rules={[{ required: true, message: 'Хүйс сонгоно уу' }]}
-            >
-              <Select placeholder="Хүйс сонгох" options={huisOptions} />
+        </Row>
+
+        <Row gutter={16} align="middle">
+          <Col xs={24} sm={nasHuisSelection === 'buduurs' ? 8 : 12}>
+            <Form.Item label="Нас хүйс">
+              <Select
+                placeholder="Сонгох"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                value={nasHuisSelection}
+                options={NAS_HUIS_COMBINED_OPTIONS}
+                onChange={handleNasHuisChange}
+              />
             </Form.Item>
           </Col>
+          {nasHuisSelection === 'buduurs' ? (
+            <>
+              <Col xs={24} sm={8}>
+                <Form.Item name="huis" label="Хүйс" rules={[{ required: true, message: 'Хүйс сонгоно уу' }]}>
+                  <Select placeholder="Хүйс" options={huisOptions} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={8}>
+                <Form.Item name="tursunOn" label="Төрсөн он" rules={[{ required: true, message: 'Төрсөн он оруулна уу' }]}>
+                  <InputNumber placeholder="2020" style={{ width: '100%' }} min={1900} max={new Date().getFullYear()} />
+                </Form.Item>
+              </Col>
+            </>
+          ) : nasHuisSelection ? (
+            <Col xs={24} sm={12} style={{ display: 'flex', alignItems: 'center', paddingTop: 8 }}>
+              <Text type="secondary" style={{ fontSize: 14 }}>
+                {new Date().getFullYear() - Number(nasHuisSelection.split('-')[1])} он
+              </Text>
+            </Col>
+          ) : null}
         </Row>
+        {nasHuisSelection !== 'buduurs' && (
+          <>
+            <Form.Item name="huis" hidden rules={[{ required: true, message: 'Нас хүйс сонгоно уу' }]}><Input /></Form.Item>
+            <Form.Item name="tursunOn" hidden><InputNumber /></Form.Item>
+          </>
+        )}
 
         <Row gutter={16}>
           <Col xs={24} sm={12}>
@@ -517,47 +565,17 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={6}>
+          <Col xs={24} sm={12}>
             <Form.Item name="zus" label="Зүс">
               <Input placeholder="Хүрэн, Халтар, Хар гэх мэт" />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={6}>
-            <Form.Item label="Нас зэрэг">
-              <Select
-                placeholder={watchedHuis ? 'Сонгох' : 'Хүйс сонго'}
-                allowClear
-                disabled={!watchedHuis}
-                value={watchedTursunOn && watchedHuis ? watchedTursunOn : undefined}
-                options={getNasHuisOptions(watchedHuis)}
-                onChange={(value) => {
-                  form.setFieldsValue({ tursunOn: value })
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Form.Item name="tursunOn" label="Төрсөн он">
-              <InputNumber
-                placeholder="2020"
-                style={{ width: '100%' }}
-                min={1900}
-                max={new Date().getFullYear()}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={6}>
+          <Col xs={24} sm={12}>
             <Form.Item name="tursunGazar" label="Төрсөн газар">
               <Input placeholder="Аймаг, сум" />
             </Form.Item>
           </Col>
         </Row>
-        {watchedTursunOn && watchedHuis && (
-          <Text type="secondary" style={{ marginTop: -12, marginBottom: 12, display: 'block' }}>
-            {getNasHuisFromYear(watchedTursunOn, watchedHuis)}
-            {watchedTursunOn ? ` (${watchedTursunOn} он)` : ''}
-          </Text>
-        )}
 
         <Divider style={{ margin: '8px 0 24px' }} />
 
