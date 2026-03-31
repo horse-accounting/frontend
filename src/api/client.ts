@@ -50,6 +50,10 @@ apiClient.interceptors.response.use(
       window.location.href = '/login'
     }
 
+    if (status === 403 && backendError?.code === 'EMAIL_NOT_VERIFIED' && !window.location.pathname.includes('/verify-email')) {
+      window.location.href = '/verify-email'
+    }
+
     // Create ApiError with backend message
     if (backendError) {
       return Promise.reject(new ApiError(backendError.message, backendError.code, status))

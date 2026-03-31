@@ -53,8 +53,10 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  user: User
+  user?: User
   accessToken: string
+  requiresVerification?: boolean
+  email?: string
 }
 
 export interface RegisterRequest {
@@ -73,8 +75,22 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  token: string
+  resetToken: string
   newPassword: string
+}
+
+export interface VerifyEmailRequest {
+  code: string
+  newPassword: string
+}
+
+export interface VerifyResetCodeRequest {
+  email: string
+  code: string
+}
+
+export interface VerifyResetCodeResponse {
+  resetToken: string
 }
 
 export interface ChangePasswordRequest {

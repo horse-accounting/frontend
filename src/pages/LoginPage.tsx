@@ -19,8 +19,13 @@ export function LoginPage() {
   const handleSubmit = async (values: LoginFormData) => {
     login.mutate(values, {
       onSuccess: (result) => {
-        message.success(result.message)
-        navigate('/')
+        if (result.data.requiresVerification) {
+          message.info(result.message)
+          navigate('/verify-email')
+        } else {
+          message.success(result.message)
+          navigate('/')
+        }
       },
       onError: (error) => {
         message.error(error.message)

@@ -31,5 +31,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  // Email not verified - redirect to verify page
+  if (!user.isEmailVerified) {
+    return <Navigate to="/verify-email" replace />
+  }
+
   return <>{children}</>
 }
