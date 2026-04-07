@@ -11,6 +11,9 @@ import type {
   ResetPasswordRequest,
   ChangePasswordRequest,
   UpdateProfileRequest,
+  VerifyEmailRequest,
+  VerifyResetCodeRequest,
+  VerifyResetCodeResponse,
   User,
 } from './types'
 
@@ -48,6 +51,21 @@ const resetPassword = async (data: ResetPasswordRequest): Promise<{ message: str
   return { message: response.data.message }
 }
 
+const sendVerificationCode = async (): Promise<{ message: string }> => {
+  const response = await apiClient.post<ApiResponse>('/auth/send-verification-code')
+  return { message: response.data.message }
+}
+
+const verifyEmail = async (data: VerifyEmailRequest): Promise<AuthResult<{ user: User }>> => {
+  const response = await apiClient.post<ApiResponse<{ user: User }>>('/auth/verify-email', data)
+  return { data: response.data.data, message: response.data.message }
+}
+
+const verifyResetCode = async (data: VerifyResetCodeRequest): Promise<AuthResult<VerifyResetCodeResponse>> => {
+  const response = await apiClient.post<ApiResponse<VerifyResetCodeResponse>>('/auth/verify-reset-code', data)
+  return { data: response.data.data, message: response.data.message }
+}
+
 const getMe = async () => {
   const response = await apiClient.get<ApiResponse<{ user: User }>>('/auth/me')
   return response.data.data.user
@@ -79,8 +97,13 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: login,
     onSuccess: (result) => {
-      setAuth(result.data.user, result.data.accessToken)
-      queryClient.setQueryData(authKeys.me(), result.data.user)
+      if (result.data.requiresVerification) {
+        // Store token for verify-email calls, but don't set user
+        useAuthStore.getState().setPendingVerification(result.data.accessToken, result.data.email!)
+      } else if (result.data.user) {
+        setAuth(result.data.user, result.data.accessToken)
+        queryClient.setQueryData(authKeys.me(), result.data.user)
+      }
     },
   })
 }
@@ -120,6 +143,33 @@ export const useForgotPassword = () => {
 export const useResetPassword = () => {
   return useMutation({
     mutationFn: resetPassword,
+  })
+}
+
+export const useSendVerificationCode = () => {
+  return useMutation({
+    mutationFn: sendVerificationCode,
+  })
+}
+
+export const useVerifyEmail = () => {
+  const queryClient = useQueryClient()
+  const setUser = useAuthStore((state) => state.setUser)
+
+  return useMutation({
+    mutationFn: verifyEmail,
+    onSuccess: (result) => {
+      setUser(result.data.user)
+      // Clear pending verification state
+      useAuthStore.getState().clearPendingVerification()
+      queryClient.setQueryData(authKeys.me(), result.data.user)
+    },
+  })
+}
+
+export const useVerifyResetCode = () => {
+  return useMutation({
+    mutationFn: verifyResetCode,
   })
 }
 

@@ -1,1 +1,1 @@
-export { useAuthStore, useUser, useAccessToken, useIsAuthenticated } from './authStore'
+export { useAuthStore, useUser, useAccessToken, useIsAuthenticated, usePendingVerificationEmail } from './authStore'

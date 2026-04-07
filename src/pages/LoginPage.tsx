@@ -19,8 +19,13 @@ export function LoginPage() {
   const handleSubmit = async (values: LoginFormData) => {
     login.mutate(values, {
       onSuccess: (result) => {
-        message.success(result.message)
-        navigate('/')
+        if (result.data.requiresVerification) {
+          message.info(result.message)
+          navigate('/verify-email')
+        } else {
+          message.success(result.message)
+          navigate('/')
+        }
       },
       onError: (error) => {
         message.error(error.message)
@@ -102,14 +107,14 @@ export function LoginPage() {
             </Form.Item>
           </Form>
 
-          <Divider plain>
+          {/* <Divider plain>
             <Text type="secondary">эсвэл</Text>
           </Divider>
 
           <div className="auth-footer">
             <Text>Шинэ хэрэглэгч үү? </Text>
             <Link to="/register">Бүртгүүлэх</Link>
-          </div>
+          </div> */}
         </Card>
       </div>
     </div>

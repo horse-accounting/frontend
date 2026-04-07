@@ -6,10 +6,13 @@ interface AuthState {
   user: User | null
   accessToken: string | null
   isAuthenticated: boolean
+  pendingVerificationEmail: string | null
 
   // Actions
   setAuth: (user: User, accessToken: string) => void
   setUser: (user: User) => void
+  setPendingVerification: (accessToken: string, email: string) => void
+  clearPendingVerification: () => void
   logout: () => void
 }
 
@@ -19,12 +22,14 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      pendingVerificationEmail: null,
 
       setAuth: (user, accessToken) =>
         set({
           user,
           accessToken,
           isAuthenticated: true,
+          pendingVerificationEmail: null,
         }),
 
       setUser: (user) =>
@@ -32,11 +37,25 @@ export const useAuthStore = create<AuthState>()(
           user,
         }),
 
+      setPendingVerification: (accessToken, email) =>
+        set({
+          accessToken,
+          pendingVerificationEmail: email,
+          isAuthenticated: false,
+          user: null,
+        }),
+
+      clearPendingVerification: () =>
+        set({
+          pendingVerificationEmail: null,
+        }),
+
       logout: () =>
         set({
           user: null,
           accessToken: null,
           isAuthenticated: false,
+          pendingVerificationEmail: null,
         }),
     }),
     {
@@ -54,3 +73,4 @@ export const useAuthStore = create<AuthState>()(
 export const useUser = () => useAuthStore((state) => state.user)
 export const useAccessToken = () => useAuthStore((state) => state.accessToken)
 export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated)
+export const usePendingVerificationEmail = () => useAuthStore((state) => state.pendingVerificationEmail)
