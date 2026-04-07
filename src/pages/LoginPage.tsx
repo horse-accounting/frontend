@@ -107,14 +107,14 @@ export function LoginPage() {
             </Form.Item>
           </Form>
 
-          <Divider plain>
+          {/* <Divider plain>
             <Text type="secondary">эсвэл</Text>
           </Divider>
 
           <div className="auth-footer">
             <Text>Шинэ хэрэглэгч үү? </Text>
             <Link to="/register">Бүртгүүлэх</Link>
-          </div>
+          </div> */}
         </Card>
       </div>
     </div>
