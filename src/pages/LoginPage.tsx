@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, Card, Divider, App } from 'antd'
+import { Form, Input, Button, Typography, Card, App } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '../api'
