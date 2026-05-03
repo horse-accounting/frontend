@@ -29,7 +29,7 @@ This is **Удамшил** (Udamshil) — a Mongolian horse pedigree and account
 
 ## Architecture
 
-**Frontend-only repo** — the backend is a separate service at `http://54.151.198.24:3000`. In production, Vercel rewrites `/api/*` to the backend (see `vercel.json`). In dev, set `VITE_API_URL` or it defaults to `/api`.
+**Frontend-only repo** — the backend is a separate HTTPS service (URL kept out of source). The frontend calls the backend directly; no Vercel proxy. `VITE_API_URL` is **required** — set it in `.env` / `.env.local` for local dev (both are gitignored) and as a Vercel project environment variable for production. The app throws on startup if it's missing.
 
 ### Provider hierarchy (main.tsx)
 `StrictMode` → `QueryClientProvider` (React Query, 1min staleTime) → `ThemeProvider` (Ant Design + dark/light mode) → `App`
