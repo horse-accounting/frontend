@@ -1,9 +1,10 @@
 import axios, { type AxiosError } from 'axios'
 import { useAuthStore } from '../stores'
 
-// Vercel Rewrite (Proxy) ашиглах - production дээр /api нь backend руу proxy хийнэ
-// Development дээр (localhost) env файлаас унших
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_URL тохируулагдаагүй байна. .env файл эсвэл Vercel environment variable-аас тохируулна уу.')
+}
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
