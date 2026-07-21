@@ -1,7 +1,7 @@
 import { Form, Input, Button, Typography, Card, App } from 'antd'
 import { LockOutlined, SafetyOutlined } from '@ant-design/icons'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { useVerifyEmail, useSendVerificationCode } from '../api'
+import { useVerifyEmail, useSendVerificationCode, applyApiErrorToForm } from '../api'
 import { usePendingVerificationEmail, useAccessToken } from '../stores'
 
 const { Title, Text, Paragraph } = Typography
@@ -35,7 +35,7 @@ export function VerifyEmailPage() {
           navigate('/')
         },
         onError: (error) => {
-          message.error(error.message)
+          if (!applyApiErrorToForm(form, error)) message.error(error.message)
         },
       }
     )

@@ -1,7 +1,7 @@
 import { Form, Input, Button, Typography, Card, App } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
-import { useLogin } from '../api'
+import { useLogin, applyApiErrorToForm } from '../api'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -28,7 +28,7 @@ export function LoginPage() {
         }
       },
       onError: (error) => {
-        message.error(error.message)
+        if (!applyApiErrorToForm(form, error)) message.error(error.message)
       },
     })
   }

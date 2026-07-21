@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Modal,
   Input,
@@ -31,47 +31,37 @@ type FilterType = 'all' | Huis
 
 export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseSelectModalProps) {
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
 
-  const { data: aduunuudData, isLoading } = useAduunuud({ limit: 200 })
-  const aduunuud = aduunuudData?.aduunuud || []
+  // Хайлтыг server тал руу 300мс debounce-тэй явуулна — адууны тоо
+  // хэдэн зуунаас хэтэрсэн ч бүх адуунаас хайж чадна (limit-д баригдахгүй)
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
-  const counts = useMemo(() => ({
-    all: aduunuud.length,
-    er: aduunuud.filter(a => a.huis === 'er').length,
-    em: aduunuud.filter(a => a.huis === 'em').length,
-  }), [aduunuud])
-
-  const filteredAduunuud = useMemo(() => {
-    let result = aduunuud
-
-    if (filter !== 'all') {
-      result = result.filter(a => a.huis === filter)
-    }
-
-    if (search.trim()) {
-      const searchLower = search.toLowerCase()
-      result = result.filter(
-        (aduu) =>
-          aduu.ner.toLowerCase().includes(searchLower) ||
-          aduu.uulder?.name.toLowerCase().includes(searchLower) ||
-          aduu.zus?.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return result
-  }, [aduunuud, search, filter])
+  const { data: aduunuudData, isLoading } = useAduunuud({
+    limit: 100,
+    include: 'zurag,amjilt',
+    search: debouncedSearch.trim() || undefined,
+    huis: filter !== 'all' ? filter : undefined,
+  })
+  const filteredAduunuud = aduunuudData?.aduunuud || []
+  const total = aduunuudData?.pagination?.total ?? 0
 
   const handleSelect = (aduu: Aduu) => {
     onSelect(aduu)
     onClose()
     setSearch('')
+    setDebouncedSearch('')
     setFilter('all')
   }
 
   const handleClose = () => {
     onClose()
     setSearch('')
+    setDebouncedSearch('')
     setFilter('all')
   }
 
@@ -168,7 +158,7 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
       {/* Search & Filter */}
       <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
         <Input
-          placeholder="Нэр, үүлдэр, зүсээр хайх..."
+          placeholder="Нэр, зүс, тамга, микрочипээр хайх..."
           prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
           size="large"
           allowClear
@@ -181,9 +171,9 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
           onChange={(val) => setFilter(val as FilterType)}
           block
           options={[
-            { label: `Бүгд (${counts.all})`, value: 'all' },
-            { label: `♂ Эр (${counts.er})`, value: 'er' },
-            { label: `♀ Эм (${counts.em})`, value: 'em' },
+            { label: filter === 'all' ? `Бүгд (${total})` : 'Бүгд', value: 'all' },
+            { label: filter === 'er' ? `♂ Эр (${total})` : '♂ Эр', value: 'er' },
+            { label: filter === 'em' ? `♀ Эм (${total})` : '♀ Эм', value: 'em' },
           ]}
         />
       </div>

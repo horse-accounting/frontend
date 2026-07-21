@@ -32,16 +32,17 @@ This is **Удамшил** (Udamshil) — a Mongolian horse pedigree and account
 **Frontend-only repo** — the backend is a separate HTTPS service (URL kept out of source). The frontend calls the backend directly; no Vercel proxy. `VITE_API_URL` is **required** — set it in `.env` / `.env.local` for local dev (both are gitignored) and as a Vercel project environment variable for production. The app throws on startup if it's missing.
 
 ### Provider hierarchy (main.tsx)
-`StrictMode` → `QueryClientProvider` (React Query, 1min staleTime) → `ThemeProvider` (Ant Design + dark/light mode) → `App`
+`StrictMode` → `ErrorBoundary` (render-алдааг барьж "дахин ачаалах" дэлгэц харуулна) → `QueryClientProvider` (React Query, 1min staleTime) → `ThemeProvider` (Ant Design + dark/light mode) → `App`
 
 ### Routing (App.tsx)
-- **Public:** `/login`, `/register`, `/forgot-password`, `/verify-email`
+- **Public:** `/login`, `/forgot-password`, `/verify-email` — **no `/register`**: registration is closed, admins create accounts (there is no RegisterPage; don't re-add one without a product decision)
 - **Protected** (wrapped in `ProtectedRoute` → `MainLayout` with sidebar): `/` (dashboard), `/aduu`, `/aduu/:id`, `/uulder`, `/buleg`, `/amjilt`, `/profile`
 - `ProtectedRoute` checks auth token from Zustand store, verifies via `/me` endpoint, and enforces email verification
 
 ### API layer (`src/api/`)
-- `client.ts` — Axios instance with auth interceptor (reads token from Zustand) and response interceptor (auto-redirects on 401/403). Custom `ApiError` class.
-- `types.ts` — All TypeScript interfaces for API requests/responses
+- `client.ts` — Axios instance with auth interceptor (reads token from Zustand) and response interceptor (auto-redirects on 401/403). Custom `ApiError` class **carries `details` (per-field validation errors)**; use `applyApiErrorToForm(form, error)` in catch/onError to surface them on antd forms — it returns `false` when there are no field details, in which case show `error.message`.
+- `types.ts` — All TypeScript interfaces for API requests/responses, **plus shared UI constants**: `huisLabels`, `huisColors`, `zarlagaShaltgaanLabels`, `FALLBACK_IMAGE`, `FALLBACK_IMAGE_THUMB`. Do not redeclare these locally.
+- `GET /aduu` supports `include=` (comma list: `zurag,amjilt,father,mother,owner`; empty string = none, omitted = `zurag`), `sortBy`/`sortOrder`, and server-side `search` — list consumers request only the relations they render; pickers (`HorseSelectModal`, FamilyTree parent select) use debounced server-side search instead of loading everything
 - Per-entity modules (`aduu.ts`, `uulder.ts`, `buleg.ts`, `amjilt.ts`, `zurag.ts`, `auth.ts`, `users.ts`, `stats.ts`, `upload.ts`) — each exports React Query hooks and query key factories
 - `index.ts` — barrel re-export of all hooks and keys. Import from `../api` not individual files.
 
@@ -53,9 +54,10 @@ This is **Удамшил** (Udamshil) — a Mongolian horse pedigree and account
 
 ### Components (`src/components/`)
 - `MainLayout.tsx` — Responsive sidebar layout (Ant Design `Layout` + mobile `Drawer`), renders child routes via `<Outlet />`
-- `AddEdit*Modal.tsx` — Modal forms for CRUD operations on each entity
+- `AddEdit*Modal.tsx` — Modal forms for CRUD operations on each entity. The aduu form requires `tursunOn` (birth year) in all paths; on `zarsan`/`belgelsen` departure it offers an **optional** "Шинэ эзний нэр" (`ezniiNer`) input
 - `FamilyTree.tsx` — Horse pedigree/ancestry tree visualization
 - `HorseSelectModal.tsx` — Reusable horse picker (used for parent selection)
+- `ErrorBoundary.tsx` — top-level render-error catcher (mounted in main.tsx)
 
 ### Theme
 `ThemeContext` wraps Ant Design's `ConfigProvider` with light/dark toggle. Persisted to localStorage as `udamshil-theme`.

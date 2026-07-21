@@ -24,6 +24,7 @@ import {
   useMe,
   useUpdateProfile,
   useChangePassword,
+  applyApiErrorToForm,
   type UpdateProfileRequest,
 } from '../api'
 
@@ -51,11 +52,11 @@ export function ProfilePage() {
   const handleProfileSubmit = async (values: UpdateProfileRequest) => {
     if (!user) return
     try {
-      await updateProfile.mutateAsync({ id: user.id, data: values })
+      await updateProfile.mutateAsync({ name: values.name })
       message.success('Мэдээлэл амжилттай шинэчлэгдлээ')
       setEditingProfile(false)
-    } catch {
-      message.error('Шинэчлэхэд алдаа гарлаа')
+    } catch (error) {
+      if (!applyApiErrorToForm(profileForm, error)) message.error((error as Error).message || 'Шинэчлэхэд алдаа гарлаа')
     }
   }
 
@@ -65,7 +66,7 @@ export function ProfilePage() {
       message.success(result.message)
       passwordForm.resetFields()
     } catch (error) {
-      message.error((error as Error).message || 'Алдаа гарлаа')
+      if (!applyApiErrorToForm(passwordForm, error)) message.error((error as Error).message || 'Алдаа гарлаа')
     }
   }
 
@@ -144,15 +145,12 @@ export function ProfilePage() {
               <Form.Item
                 name="email"
                 label="И-мэйл"
-                rules={[
-                  { required: true, message: 'И-мэйл оруулна уу' },
-                  { type: 'email', message: 'И-мэйл буруу байна' },
-                ]}
+                extra="И-мэйл нь нэвтрэх нэр тул өөрчлөх бол админд хандана уу"
               >
                 <Input
                   prefix={<MailOutlined style={{ color: '#bfbfbf' }} />}
                   placeholder="И-мэйл"
-                  disabled={!editingProfile}
+                  disabled
                   size="large"
                 />
               </Form.Item>

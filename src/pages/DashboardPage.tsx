@@ -1,14 +1,15 @@
-import { Card, Tag, Row, Col, Typography, Avatar, Spin, Button, List, Space, Progress, Table } from 'antd'
+import { Card, Tag, Row, Col, Typography, Avatar, Spin, Button, List, Space, Progress, Table, Tooltip } from 'antd'
 import {
   UserOutlined,
   TrophyOutlined,
   PlusOutlined,
   RightOutlined,
   ClockCircleOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons'
 import { Pie } from '@ant-design/charts'
 import { useNavigate } from 'react-router-dom'
-import { useMe, useStats, type Huis } from '../api'
+import { useMe, useStats, huisLabels, huisColors } from '../api'
 import type { UulderAngilal, BulegAngilal } from '../api/types'
 import dayjs from 'dayjs'
 
@@ -21,15 +22,15 @@ const getGreeting = () => {
   return 'Оройн мэнд'
 }
 
-const huisLabels: Record<Huis, string> = {
-  er: 'Эр',
-  em: 'Эм',
-}
-
-const huisColors: Record<Huis, string> = {
-  er: 'blue',
-  em: 'magenta',
-}
+// Картын тоо ямар адууг тоолж байгааг тайлбарлах жижиг шошго
+const StatLabel = ({ label, hint }: { label: string; hint: string }) => (
+  <Text type="secondary" style={{ fontSize: 13 }}>
+    {label}{' '}
+    <Tooltip title={hint}>
+      <InfoCircleOutlined style={{ fontSize: 12, color: '#bfbfbf' }} />
+    </Tooltip>
+  </Text>
+)
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -97,7 +98,7 @@ export function DashboardPage() {
                   🐴
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Нийт адуу</Text>
+                  <StatLabel label="Нийт адуу" hint="Одоо таны сүрэгт байгаа өөрийн адуу — зарлага гарсан болон өөрийн биш гэж бүртгэсэн адуу ороогүй" />
                   <Title level={2} style={{ margin: 0 }}>{totalAduu}</Title>
                 </div>
               </div>
@@ -112,7 +113,7 @@ export function DashboardPage() {
                   🏷️
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Нийт үүлдэр</Text>
+                  <StatLabel label="Нийт үүлдэр" hint="Таны бүртгэсэн үүлдрийн тоо" />
                   <Title level={2} style={{ margin: 0 }}>{niit?.uulder ?? 0}</Title>
                 </div>
               </div>
@@ -127,7 +128,7 @@ export function DashboardPage() {
                   📂
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Нийт бүлэг</Text>
+                  <StatLabel label="Нийт бүлэг" hint="Таны бүртгэсэн бүлгийн (азарган адууны) тоо" />
                   <Title level={2} style={{ margin: 0 }}>{niit?.buleg ?? 0}</Title>
                 </div>
               </div>
@@ -142,7 +143,7 @@ export function DashboardPage() {
                   🏇
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>Уралдсан</Text>
+                  <StatLabel label="Уралдсан" hint="Сүрэгт байгаа адуунаас уралдаанд оролцож байсан нь" />
                   <Title level={2} style={{ margin: 0 }}>{niit?.uraldsan ?? 0}</Title>
                 </div>
               </div>
@@ -193,7 +194,10 @@ export function DashboardPage() {
                   {(niit?.zarlagaToo ?? 0) > 0 && (
                     <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: 4 }}>
                       <Text type="secondary" style={{ fontSize: 12 }}>Зарлага: </Text>
-                      <Text type="warning" strong>{niit?.zarlagaToo}</Text>
+                      <Text type="warning" strong>{niit?.zarlagaToo}</Text>{' '}
+                      <Tooltip title="Сүрэгээс гарсан адуу — үхсэн, зарсан, бэлэглэсэн, алга болсон, хулгайлагдсан">
+                        <InfoCircleOutlined style={{ fontSize: 12, color: '#bfbfbf' }} />
+                      </Tooltip>
                     </div>
                   )}
                 </>
