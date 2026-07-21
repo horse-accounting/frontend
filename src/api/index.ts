@@ -1,5 +1,5 @@
 // API Client
-export { apiClient } from './client'
+export { apiClient, ApiError, applyApiErrorToForm } from './client'
 
 // Types
 export * from './types'
@@ -8,7 +8,6 @@ export * from './types'
 export {
   authKeys,
   useLogin,
-  useRegister,
   useLogout,
   useForgotPassword,
   useResetPassword,

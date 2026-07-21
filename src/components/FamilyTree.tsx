@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { ReactElement } from 'react'
+import { useState, useEffect } from 'react'
+import type { ReactElement, CSSProperties } from 'react'
 import { Card, Empty, Select, Tag, App, Popover, Button, Space, Modal } from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -12,8 +12,22 @@ import {
   type DescendantNode,
   type Huis,
   type Aduu,
+  huisLabels,
 } from '../api'
 import { AddEditAduuModal } from './AddEditAduuModal'
+
+// "Өөрийн биш" (бусдын) адууг удмын мод дээр ялгах жижиг тэмдэглэгээ
+const OORIIN_BISH_BADGE: CSSProperties = {
+  display: 'inline-block',
+  marginTop: 3,
+  fontSize: 9,
+  lineHeight: 1.4,
+  color: '#d46b08',
+  background: '#fff7e6',
+  border: '1px solid #ffd591',
+  borderRadius: 3,
+  padding: '0 4px',
+}
 
 interface FamilyTreeProps {
   currentHorse: {
@@ -33,10 +47,6 @@ interface FamilyTreeProps {
   onDescendantDepthChange: (depth: number) => void
 }
 
-const huisLabels: Record<Huis, string> = {
-  er: 'Эр',
-  em: 'Эм',
-}
 
 interface FlatCell {
   row: number
@@ -100,6 +110,7 @@ function DescBranch({
           {node.tursunOn && <>{node.tursunOn} · </>}
           {huisLabels[node.huis]}
         </div>
+        {node.ooriinBish && <span style={OORIIN_BISH_BADGE}>Өөрийн биш</span>}
       </div>
       {hasChildren && (
         <>
@@ -138,9 +149,6 @@ export function FamilyTree({
   const updateAduu = useUpdateAduu()
   const { message } = App.useApp()
 
-  const { data: aduunuudData } = useAduunuud({ limit: 200 })
-  const aduunuud = aduunuudData?.aduunuud || []
-
   // Modal state for adding a parent
   const [modalOpen, setModalOpen] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
@@ -150,6 +158,23 @@ export function FamilyTree({
     huis: Huis
   } | null>(null)
   const [popoverOpen, setPopoverOpen] = useState<string | null>(null)
+
+  // Эцэг/эх сонгоход server-side хайлт — хүйс + хайлт хоёуланг серверт шүүнэ,
+  // ингэснээр зөв адуу limit-ээс шалтгаалж жагсаалтаас гээгдэхгүй
+  const [parentSearch, setParentSearch] = useState('')
+  const [debouncedParentSearch, setDebouncedParentSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedParentSearch(parentSearch), 300)
+    return () => clearTimeout(t)
+  }, [parentSearch])
+
+  const { data: aduunuudData } = useAduunuud({
+    limit: 100,
+    include: '',
+    huis: addParentInfo?.huis,
+    search: debouncedParentSearch.trim() || undefined,
+  })
+  const aduunuud = aduunuudData?.aduunuud || []
 
   const openAddNew = (childId: number, parentType: 'father' | 'mother') => {
     setAddParentInfo({
@@ -312,6 +337,7 @@ export function FamilyTree({
               <span className="pedigree-year">{cell.node.tursunOn} он</span>
             )}
             <span className="pedigree-huis">{huisLabels[cell.node.huis]}</span>
+            {cell.node.ooriinBish && <span style={OORIIN_BISH_BADGE}>Өөрийн биш</span>}
           </div>
         </div>
       </td>
@@ -441,11 +467,12 @@ export function FamilyTree({
       >
         <Select
           showSearch
-          optionFilterProp="label"
+          filterOption={false}
+          onSearch={setParentSearch}
           placeholder="Адуу хайх..."
           style={{ width: '100%' }}
           size="large"
-          onChange={handleSelectParent}
+          onChange={(id: number) => { handleSelectParent(id); setParentSearch('') }}
           options={aduunuud
             .filter((a) => a.huis === addParentInfo?.huis && a.id !== currentHorse.id)
             .map((a) => ({

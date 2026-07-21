@@ -59,16 +59,6 @@ export interface LoginResponse {
   email?: string
 }
 
-export interface RegisterRequest {
-  name: string
-  email: string
-  password: string
-}
-
-export interface RegisterResponse {
-  user: User
-  accessToken: string
-}
 
 export interface ForgotPasswordRequest {
   email: string
@@ -98,9 +88,9 @@ export interface ChangePasswordRequest {
   newPassword: string
 }
 
+// PUT /auth/me — зөвхөн нэр солино (имэйл нь нэвтрэх нэр тул admin л солино)
 export interface UpdateProfileRequest {
-  name?: string
-  email?: string
+  name: string
 }
 
 // ==================== Users Admin Types ====================
@@ -220,6 +210,23 @@ export const zarlagaShaltgaanLabels: Record<ZarlagaShaltgaan, string> = {
   hulgailagdsan: 'Хулгайлагдсан',
 }
 
+export const huisLabels: Record<Huis, string> = {
+  er: 'Эр',
+  em: 'Эм',
+}
+
+export const huisColors: Record<Huis, string> = {
+  er: 'blue',
+  em: 'magenta',
+}
+
+// Зураггүй үеийн placeholder-ууд (data URI — гадаад хүсэлт үүсгэхгүй)
+export const FALLBACK_IMAGE =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGY1ZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI2NCI+8J+QtDwvdGV4dD48L3N2Zz4='
+
+export const FALLBACK_IMAGE_THUMB =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA0IiBoZWlnaHQ9IjEwNCIgdmlld0JveD0iMCAwIDEwNCAxMDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwNCIgaGVpZ2h0PSIxMDQiIGZpbGw9IiNmNWY1ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2JmYmZiZiIgZm9udC1zaXplPSIxMiI+0JfRg9GA0LDQsyDQsNC70LTQsNCwPC90ZXh0Pjwvc3ZnPg=='
+
 export interface Aduu {
   id: number
   ner: string
@@ -267,6 +274,12 @@ export interface AduuQueryParams {
   tursunOnMin?: number
   tursunOnMax?: number
   unaganEzen?: string
+  // Жагсаалтад хавсаргах relation-ууд (таслалаар): zurag,amjilt,father,mother,owner.
+  // Өгөхгүй бол зөвхөн zurag (+ үүлдэр, бүлэг үргэлж ирнэ) — хөнгөн default.
+  // Хоосон string ('') = нэмэлт relation огт хэрэггүй (нэр/он л хэрэгтэй сонголтын жагсаалтад).
+  include?: string
+  sortBy?: 'ner' | 'tursunOn' | 'zarlagaOn' | 'createdAt' | 'updatedAt'
+  sortOrder?: 'asc' | 'desc'
 }
 
 export interface CreateAduuRequest {
@@ -328,6 +341,7 @@ export interface AncestorNode {
   nas?: number
   nasHuis?: string
   zus?: string
+  ooriinBish?: boolean
   uulder?: { id: number; name: string }
   father?: AncestorNode
   mother?: AncestorNode
@@ -341,6 +355,7 @@ export interface DescendantNode {
   nas?: number
   nasHuis?: string
   zus?: string
+  ooriinBish?: boolean
   uulder?: { id: number; name: string }
   children?: DescendantNode[]
 }

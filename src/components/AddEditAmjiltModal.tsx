@@ -64,6 +64,7 @@ export function AddEditAmjiltModal({ open, amjilt, aduuId, onClose, onSuccess }:
       }
 
       if (isEdit && amjilt) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { aduuId: _, ...updateData } = submitData
         await updateAmjilt.mutateAsync({ id: amjilt.id, data: updateData })
         message.success('Амжилт амжилттай шинэчлэгдлээ')

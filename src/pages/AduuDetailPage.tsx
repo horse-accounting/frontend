@@ -25,24 +25,13 @@ import {
   TrophyOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons'
-import { useAduu, useFamilyTree, useDownloadAduuPdf, type Huis, zarlagaShaltgaanLabels } from '../api'
+import { useAduu, useFamilyTree, useDownloadAduuPdf, zarlagaShaltgaanLabels, huisLabels, huisColors, FALLBACK_IMAGE } from '../api'
 import { useState } from 'react'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
 import { FamilyTree } from '../components/FamilyTree'
 
 const { Title, Text, Paragraph } = Typography
 
-const huisLabels: Record<Huis, string> = {
-  er: 'Эр',
-  em: 'Эм',
-}
-
-const huisColors: Record<Huis, string> = {
-  er: 'blue',
-  em: 'magenta',
-}
-
-const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGY1ZmYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI2NCI+8J+QtDwvdGV4dD48L3N2Zz4='
 
 export function AduuDetailPage() {
   const { id } = useParams<{ id: string }>()

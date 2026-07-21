@@ -43,6 +43,8 @@ import {
   type ZarlagaShaltgaan,
   type CreateAduuRequest,
   zarlagaShaltgaanLabels,
+  applyApiErrorToForm,
+  FALLBACK_IMAGE_THUMB,
 } from '../api'
 
 interface ZuragInfo {
@@ -55,7 +57,6 @@ interface ZuragInfo {
 const { TextArea } = Input
 const { Text } = Typography
 
-const FALLBACK_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA0IiBoZWlnaHQ9IjEwNCIgdmlld0JveD0iMCAwIDEwNCAxMDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwNCIgaGVpZ2h0PSIxMDQiIGZpbGw9IiNmNWY1ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2JmYmZiZiIgZm9udC1zaXplPSIxMiI+0JfRg9GA0LDQsyDQsNC70LTQsNCwPC90ZXh0Pjwvc3ZnPg=='
 
 interface AddEditAduuModalProps {
   open: boolean
@@ -113,7 +114,18 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const { data: uulders } = useUulders()
   const { data: bulegs } = useBulegs()
-  const { data: aduunuudData } = useAduunuud({ limit: 100 })
+
+  // Эцэг/эх сонголт — хүйс + хайлтыг SERVER талд шүүнэ. Client-side шүүлт
+  // limit-тэй хослохоор зөв адуу эхний 100-д багтахгүй үед сонгох боломжгүй болдог.
+  const [parentSearch, setParentSearch] = useState('')
+  const [debouncedParentSearch, setDebouncedParentSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedParentSearch(parentSearch), 300)
+    return () => clearTimeout(t)
+  }, [parentSearch])
+  const parentQuery = { limit: 100, include: '', search: debouncedParentSearch.trim() || undefined }
+  const { data: erAduunuudData } = useAduunuud({ ...parentQuery, huis: 'er' })
+  const { data: emAduunuudData } = useAduunuud({ ...parentQuery, huis: 'em' })
   const createAduu = useCreateAduu()
   const updateAduu = useUpdateAduu()
   const uploadImages = useUploadImages()
@@ -121,10 +133,10 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
   const updateZurag = useUpdateZurag()
   const deleteZurag = useDeleteZurag()
 
-  const aduunuud = aduunuudData?.aduunuud || []
-
   const zarlagaShaltgaan = Form.useWatch('zarlagaShaltgaan', form)
   const ooriinBish = Form.useWatch('ooriinBish', form)
+  // Зарсан/бэлэглэсэн зарлагад шинэ эзний нэрийг (заавал биш) асууна
+  const isSoldOrGifted = zarlagaShaltgaan === 'zarsan' || zarlagaShaltgaan === 'belgelsen'
 
   useEffect(() => {
     if (open) {
@@ -185,7 +197,12 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
       if (!values.zarlagaShaltgaan) {
         values.zarlagaOn = undefined
       }
-      if (!values.ooriinBish) {
+      // Эзний нэрийг "өөрийн биш" адуу эсвэл зарсан/бэлэглэсэн зарлагад л хадгална
+      const keepEzniiNer =
+        !!values.ooriinBish ||
+        values.zarlagaShaltgaan === 'zarsan' ||
+        values.zarlagaShaltgaan === 'belgelsen'
+      if (!keepEzniiNer) {
         values.ezniiNer = undefined
       }
 
@@ -196,7 +213,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
             ...values,
             zarlagaShaltgaan: values.zarlagaShaltgaan || null,
             zarlagaOn: values.zarlagaOn || null,
-            ezniiNer: values.ooriinBish ? values.ezniiNer : null,
+            ezniiNer: keepEzniiNer ? values.ezniiNer || null : null,
           },
         })
         for (const img of images) {
@@ -221,8 +238,10 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
         return
       }
       onSuccess()
-    } catch {
-      message.error(isEdit ? 'Шинэчлэхэд алдаа гарлаа' : 'Нэмэхэд алдаа гарлаа')
+    } catch (error) {
+      if (!applyApiErrorToForm(form, error)) {
+        message.error((error as Error).message || (isEdit ? 'Шинэчлэхэд алдаа гарлаа' : 'Нэмэхэд алдаа гарлаа'))
+      }
     }
   }
 
@@ -313,12 +332,12 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const isLoading = createAduu.isPending || updateAduu.isPending
 
-  const fatherOptions = aduunuud
-    .filter((a) => a.huis === 'er' && a.id !== aduu?.id)
+  const fatherOptions = (erAduunuudData?.aduunuud || [])
+    .filter((a) => a.id !== aduu?.id)
     .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
 
-  const motherOptions = aduunuud
-    .filter((a) => a.huis === 'em' && a.id !== aduu?.id)
+  const motherOptions = (emAduunuudData?.aduunuud || [])
+    .filter((a) => a.id !== aduu?.id)
     .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
 
   const uploadButton = (
@@ -391,7 +410,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
                     }}
                     onClick={() => handlePreview(imageInfo.url)}
                     onError={(e) => {
-                      e.currentTarget.src = FALLBACK_IMAGE
+                      e.currentTarget.src = FALLBACK_IMAGE_THUMB
                     }}
                   />
                   <div
@@ -539,7 +558,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
         {nasHuisSelection !== 'buduurs' && (
           <>
             <Form.Item name="huis" hidden rules={[{ required: true, message: 'Нас хүйс сонгоно уу' }]}><Input /></Form.Item>
-            <Form.Item name="tursunOn" hidden><InputNumber /></Form.Item>
+            <Form.Item name="tursunOn" hidden rules={[{ required: true, message: 'Нас хүйс сонгоно уу' }]}><InputNumber /></Form.Item>
           </>
         )}
 
@@ -588,9 +607,13 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
             </Form.Item>
             <Text style={{ marginTop: -20, marginBottom: 12, display: 'block' }}>Өөрийн адуу биш</Text>
           </Col>
-          {ooriinBish && (
+          {(ooriinBish || isSoldOrGifted) && (
             <Col xs={24} sm={12}>
-              <Form.Item name="ezniiNer" label="Эзний нэр">
+              <Form.Item
+                name="ezniiNer"
+                label={isSoldOrGifted && !ooriinBish ? 'Шинэ эзний нэр' : 'Эзний нэр'}
+                extra={isSoldOrGifted ? 'Заавал биш — мэдэхгүй бол хоосон орхиж болно' : undefined}
+              >
                 <Input placeholder="Эзэмшигчийн нэр" />
               </Form.Item>
             </Col>
@@ -643,7 +666,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
                 placeholder="Эцэг сонгох"
                 allowClear
                 showSearch
-                optionFilterProp="label"
+                filterOption={false}
+                onSearch={setParentSearch}
+                onOpenChange={(o) => { if (!o) setParentSearch('') }}
                 options={fatherOptions}
               />
             </Form.Item>
@@ -654,7 +679,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
                 placeholder="Эх сонгох"
                 allowClear
                 showSearch
-                optionFilterProp="label"
+                filterOption={false}
+                onSearch={setParentSearch}
+                onOpenChange={(o) => { if (!o) setParentSearch('') }}
                 options={motherOptions}
               />
             </Form.Item>

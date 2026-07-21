@@ -38,6 +38,9 @@ import {
   type Huis,
   type ZarlagaShaltgaan,
   zarlagaShaltgaanLabels,
+  huisLabels,
+  huisColors,
+  FALLBACK_IMAGE,
 } from '../api'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
 
@@ -48,15 +51,6 @@ const huisOptions: { value: Huis; label: string }[] = [
   { value: 'em', label: 'Эм' },
 ]
 
-const huisLabels: Record<Huis, string> = {
-  er: 'Эр',
-  em: 'Эм',
-}
-
-const huisColors: Record<Huis, string> = {
-  er: 'blue',
-  em: 'magenta',
-}
 
 const zarlagaFilterOptions = Object.entries(zarlagaShaltgaanLabels).map(([value, label]) => ({
   value: value as ZarlagaShaltgaan,
@@ -156,6 +150,7 @@ export function AduunuudPage() {
   const { data, isLoading, refetch } = useAduunuud({
     page,
     limit,
+    include: 'zurag,father,mother',
     search: search || undefined,
     huis,
     uulderId,
@@ -191,7 +186,8 @@ export function AduunuudPage() {
 
   const handleExportExcel = () => {
     exportExcel.mutate(
-      { search: search || undefined, huis, uulderId, bulegId, uraldsan, tursunOnMin, tursunOnMax },
+      // Дэлгэц дээрх бүх идэвхтэй filter-ийг дамжуулна — export жагсаалттай яг тохирно
+      { search: search || undefined, huis, uulderId, bulegId, uraldsan, tursunOnMin, tursunOnMax, zarlagaShaltgaan, unaganEzen: unaganEzen || undefined },
       {
         onSuccess: (blob) => {
           const url = URL.createObjectURL(blob)
@@ -245,36 +241,64 @@ export function AduunuudPage() {
     {
       title: 'Адуу',
       key: 'aduu',
-      width: 220,
+      width: 280,
       fixed: 'left',
       render: (_, record) => {
         const firstImage = record.zupisnuud?.[0]?.url
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {firstImage ? (
-              <Image
-                src={firstImage}
-                width={48}
-                height={48}
-                style={{ objectFit: 'cover', borderRadius: 8 }}
-                preview={{ mask: <EyeOutlined /> }}
-                fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI4IiBmaWxsPSIjZjBmNWZmIi8+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjQiPvCfkLQ8L3RleHQ+PC9zdmc+"
-              />
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  flexShrink: 0,
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: 'var(--bg-tertiary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Image
+                  src={firstImage}
+                  width={56}
+                  height={56}
+                  style={{ objectFit: 'contain' }}
+                  preview={{ mask: <EyeOutlined /> }}
+                  fallback={FALLBACK_IMAGE}
+                />
+              </div>
             ) : (
               <Avatar
-                size={48}
+                size={56}
                 style={{
+                  flexShrink: 0,
                   backgroundColor: '#f0f5ff',
                   color: '#1890ff',
-                  fontSize: 24,
+                  fontSize: 26,
                   borderRadius: 8,
                 }}
               >
                 🐴
               </Avatar>
             )}
-            <div>
-              <Text strong style={{ display: 'block' }}>{record.ner}</Text>
+            <div style={{ minWidth: 0 }}>
+              <Text
+                strong
+                style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  lineHeight: 1.3,
+                  wordBreak: 'break-word',
+                }}
+                title={record.ner}
+              >
+                {record.ner}
+              </Text>
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {record.zus || ''}
               </Text>
@@ -621,7 +645,7 @@ export function AduunuudPage() {
             style: { marginRight: 16 },
           }}
           onChange={handleTableChange}
-          scroll={{ x: 1500 }}
+          scroll={{ x: 1630 }}
           size="middle"
           rowClassName={() => 'table-row'}
         />

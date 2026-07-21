@@ -5,8 +5,6 @@ import type {
   ApiResponse,
   LoginRequest,
   LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ChangePasswordRequest,
@@ -31,10 +29,7 @@ const login = async (data: LoginRequest): Promise<AuthResult<LoginResponse>> => 
   return { data: response.data.data, message: response.data.message }
 }
 
-const register = async (data: RegisterRequest): Promise<AuthResult<RegisterResponse>> => {
-  const response = await apiClient.post<ApiResponse<RegisterResponse>>('/auth/register', data)
-  return { data: response.data.data, message: response.data.message }
-}
+// Бүртгэл нээлттэй биш — хэрэглэгчийг admin үүсгэдэг (users API).
 
 const logoutApi = async (): Promise<{ message: string }> => {
   const response = await apiClient.post<ApiResponse>('/auth/logout')
@@ -76,8 +71,8 @@ const changePassword = async (data: ChangePasswordRequest): Promise<{ message: s
   return { message: response.data.message }
 }
 
-const updateProfile = async ({ id, data }: { id: number; data: UpdateProfileRequest }) => {
-  const response = await apiClient.put<ApiResponse<{ user: User }>>(`/users/${id}`, data)
+const updateProfile = async (data: UpdateProfileRequest) => {
+  const response = await apiClient.put<ApiResponse<{ user: User }>>('/auth/me', data)
   return response.data.data.user
 }
 
@@ -104,19 +99,6 @@ export const useLogin = () => {
         setAuth(result.data.user, result.data.accessToken)
         queryClient.setQueryData(authKeys.me(), result.data.user)
       }
-    },
-  })
-}
-
-export const useRegister = () => {
-  const queryClient = useQueryClient()
-  const setAuth = useAuthStore((state) => state.setAuth)
-
-  return useMutation({
-    mutationFn: register,
-    onSuccess: (result) => {
-      setAuth(result.data.user, result.data.accessToken)
-      queryClient.setQueryData(authKeys.me(), result.data.user)
     },
   })
 }
