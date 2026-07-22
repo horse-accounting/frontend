@@ -43,6 +43,10 @@ export interface User {
   role: UserRole
   isActive: boolean
   isEmailVerified: boolean
+  ownerId?: number | null
+  // Харьяалагдах owner-ийн нэр (/auth/me, /auth/login-оос ирнэ) — адуу нэмэх үед
+  // "унаган эзэн"-ийн default утга болгоно.
+  ownerName?: string | null
   createdAt: string
   updatedAt: string
 }

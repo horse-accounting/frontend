@@ -31,6 +31,7 @@ import type { UploadProps } from 'antd'
 import {
   useCreateAduu,
   useUpdateAduu,
+  useMe,
   useUulders,
   useBulegs,
   useAduunuud,
@@ -112,6 +113,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const { message } = App.useApp()
 
+  const { data: me } = useMe()
   const { data: uulders } = useUulders()
   const { data: bulegs } = useBulegs()
 
@@ -181,15 +183,20 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
         }
       } else {
         form.resetFields()
-        if (defaultHuis) {
-          form.setFieldsValue({ huis: defaultHuis })
-        }
+        // Шинэ адуу: унаган эзнийг харьяа owner-ийн нэрээр урьдчилж бөглөнө (session-ээс)
+        form.setFieldsValue({
+          ...(defaultHuis ? { huis: defaultHuis } : {}),
+          unaganEzen: me?.ownerName || undefined,
+        })
         setImages([])
         setNasHuisSelection(undefined)
       }
       setUploadingCount(0)
       setEditingTailbar(null)
     }
+  // Зөвхөн модал нээгдэх/аduu солигдоход л ажиллана. me/defaultHuis-ийг
+  // deps-д оруулбал background refetch үед хэрэглэгчийн бичсэнийг дарж болзошгүй.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, aduu, form])
 
   const handleSubmit = async (values: CreateAduuRequest) => {
