@@ -221,6 +221,14 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
             zarlagaShaltgaan: values.zarlagaShaltgaan || null,
             zarlagaOn: values.zarlagaOn || null,
             ezniiNer: keepEzniiNer ? values.ezniiNer || null : null,
+            // allowClear Select-ийг X дарж цэвэрлэхэд утга undefined болж body-оос
+            // унадаг тул тодорхой null болгож "холбоосыг цэвэрлэ" гэдгийг backend-д
+            // мэдэгдэнэ (эс тэгвээс backend хуучин холбоосыг хэвээр үлдээнэ).
+            // Утгатай үед `?? null` нь тэр утгыг хэвээр дамжуулна — өөрчлөлтгүй.
+            uulderId: values.uulderId ?? null,
+            bulegId: values.bulegId ?? null,
+            fatherId: values.fatherId ?? null,
+            motherId: values.motherId ?? null,
           },
         })
         for (const img of images) {

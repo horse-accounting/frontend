@@ -326,10 +326,11 @@ export interface UpdateAduuRequest {
   unaganEzen?: string
   ooriinBish?: boolean
   ezniiNer?: string | null
-  uulderId?: number
-  bulegId?: number
-  fatherId?: number
-  motherId?: number
+  // null = холбоосыг цэвэрлэ (Select-ийг X дарж хоосолсон үед)
+  uulderId?: number | null
+  bulegId?: number | null
+  fatherId?: number | null
+  motherId?: number | null
 }
 
 export interface FamilyTreeParams {
