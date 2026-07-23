@@ -98,7 +98,7 @@ export function AduuDetailPage() {
   const handleSuccess = () => {
     setModalOpen(false)
     refetch()
-    message.success('Адуу амжилттай шинэчлэгдлээ')
+    // Амжилтын мессежийг AddEditAduuModal өөрөө харуулдаг тул энд давхардуулахгүй
   }
 
   return (

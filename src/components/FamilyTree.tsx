@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ReactElement, CSSProperties } from 'react'
-import { Card, Empty, Select, Tag, App, Popover, Button, Space, Modal } from 'antd'
+import { Card, Select, Tag, App, Popover, Button, Space, Modal } from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -142,7 +142,6 @@ export function FamilyTree({
   descendantDepth,
   onDescendantDepthChange,
 }: FamilyTreeProps) {
-  const hasAncestors = ancestors.father || ancestors.mother
   const hasDescendants = descendants.length > 0
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -233,14 +232,6 @@ export function FamilyTree({
   const handleModalClose = () => {
     setModalOpen(false)
     setAddParentInfo(null)
-  }
-
-  if (!hasAncestors && !hasDescendants) {
-    return (
-      <Card title="Удмын бичиг" size="small">
-        <Empty description="Ургын мод бүртгэгдээгүй байна" />
-      </Card>
-    )
   }
 
   const depth = ancestorDepth
