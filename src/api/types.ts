@@ -250,7 +250,7 @@ export interface Aduu {
   unaganEzen?: string
   ooriinBish?: boolean
   ezniiNer?: string
-  zupisnuud?: Zurag[]
+  zuragnuud?: Zurag[]
   uulderId?: number
   uulder?: Uulder
   bulegId?: number

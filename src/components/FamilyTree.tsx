@@ -15,6 +15,8 @@ import {
   huisLabels,
 } from '../api'
 import { AddEditAduuModal } from './AddEditAduuModal'
+import { AduuOptionRow } from './AduuOptionRow'
+import { getNewestZuragUrl } from '../utils/zurag'
 
 // "Өөрийн биш" (бусдын) адууг удмын мод дээр ялгах жижиг тэмдэглэгээ
 const OORIIN_BISH_BADGE: CSSProperties = {
@@ -34,7 +36,7 @@ interface FamilyTreeProps {
     id: number
     ner: string
     huis: Huis
-    zupisnuud?: { id: number; url: string; tailbar?: string }[]
+    zuragnuud?: { id: number; url: string; tailbar?: string }[]
   }
   ancestors: {
     father?: AncestorNode
@@ -169,7 +171,7 @@ export function FamilyTree({
 
   const { data: aduunuudData } = useAduunuud({
     limit: 100,
-    include: '',
+    include: 'zurag',
     huis: addParentInfo?.huis,
     search: debouncedParentSearch.trim() || undefined,
   })
@@ -469,7 +471,13 @@ export function FamilyTree({
             .map((a) => ({
               value: a.id,
               label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}`,
+              image: getNewestZuragUrl(a.zuragnuud),
+              ner: a.ner,
+              tursunOn: a.tursunOn,
             }))}
+          optionRender={(opt) => (
+            <AduuOptionRow image={opt.data.image} ner={opt.data.ner} tursunOn={opt.data.tursunOn} />
+          )}
         />
       </Modal>
     </>

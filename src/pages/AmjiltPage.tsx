@@ -262,7 +262,7 @@ export function AmjiltPage() {
             {/* Selected Horse Info */}
             <Flex gap={16} align="center">
               <Avatar
-                src={selectedAduu.zupisnuud?.[0]?.url}
+                src={selectedAduu.zuragnuud?.[0]?.url}
                 size={64}
                 shape="square"
                 style={{ borderRadius: 12, flexShrink: 0 }}

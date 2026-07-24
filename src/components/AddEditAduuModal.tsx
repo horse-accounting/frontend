@@ -47,6 +47,8 @@ import {
   applyApiErrorToForm,
   FALLBACK_IMAGE_THUMB,
 } from '../api'
+import { AduuOptionRow } from './AduuOptionRow'
+import { getNewestZuragUrl } from '../utils/zurag'
 
 interface ZuragInfo {
   id?: number
@@ -125,7 +127,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
     const t = setTimeout(() => setDebouncedParentSearch(parentSearch), 300)
     return () => clearTimeout(t)
   }, [parentSearch])
-  const parentQuery = { limit: 100, include: '', search: debouncedParentSearch.trim() || undefined }
+  const parentQuery = { limit: 100, include: 'zurag', search: debouncedParentSearch.trim() || undefined }
   const { data: erAduunuudData } = useAduunuud({ ...parentQuery, huis: 'er' })
   const { data: emAduunuudData } = useAduunuud({ ...parentQuery, huis: 'em' })
   const createAduu = useCreateAduu()
@@ -165,7 +167,7 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
           motherId: aduu.motherId,
         })
         setImages(
-          (aduu.zupisnuud || []).map((z) => ({
+          (aduu.zuragnuud || []).map((z) => ({
             id: z.id,
             url: z.url,
             tailbar: z.tailbar,
@@ -349,11 +351,23 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
 
   const fatherOptions = (erAduunuudData?.aduunuud || [])
     .filter((a) => a.id !== aduu?.id)
-    .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
+    .map((a) => ({
+      value: a.id,
+      label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}`,
+      image: getNewestZuragUrl(a.zuragnuud),
+      ner: a.ner,
+      tursunOn: a.tursunOn,
+    }))
 
   const motherOptions = (emAduunuudData?.aduunuud || [])
     .filter((a) => a.id !== aduu?.id)
-    .map((a) => ({ value: a.id, label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}` }))
+    .map((a) => ({
+      value: a.id,
+      label: `${a.ner}${a.tursunOn ? ` (${a.tursunOn})` : ''}`,
+      image: getNewestZuragUrl(a.zuragnuud),
+      ner: a.ner,
+      tursunOn: a.tursunOn,
+    }))
 
   const uploadButton = (
     <div>
@@ -685,6 +699,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
                 onSearch={setParentSearch}
                 onOpenChange={(o) => { if (!o) setParentSearch('') }}
                 options={fatherOptions}
+                optionRender={(opt) => (
+                  <AduuOptionRow image={opt.data.image} ner={opt.data.ner} tursunOn={opt.data.tursunOn} />
+                )}
               />
             </Form.Item>
           </Col>
@@ -698,6 +715,9 @@ export function AddEditAduuModal({ open, aduu, onClose, onSuccess, defaultHuis }
                 onSearch={setParentSearch}
                 onOpenChange={(o) => { if (!o) setParentSearch('') }}
                 options={motherOptions}
+                optionRender={(opt) => (
+                  <AduuOptionRow image={opt.data.image} ner={opt.data.ner} tursunOn={opt.data.tursunOn} />
+                )}
               />
             </Form.Item>
           </Col>
