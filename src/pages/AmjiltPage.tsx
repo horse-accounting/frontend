@@ -27,6 +27,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { useAmjiltuudByAduu, useDeleteAmjilt, type Amjilt, type Aduu } from '../api'
 import { AddEditAmjiltModal } from '../components/AddEditAmjiltModal'
 import { HorseSelectModal } from '../components/HorseSelectModal'
+import { cloudinaryThumb } from '../utils/zurag'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -262,7 +263,7 @@ export function AmjiltPage() {
             {/* Selected Horse Info */}
             <Flex gap={16} align="center">
               <Avatar
-                src={selectedAduu.zuragnuud?.[0]?.url}
+                src={cloudinaryThumb(selectedAduu.zuragnuud?.[0]?.url, 64)}
                 size={64}
                 shape="square"
                 style={{ borderRadius: 12, flexShrink: 0 }}

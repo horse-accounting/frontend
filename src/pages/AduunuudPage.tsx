@@ -43,7 +43,7 @@ import {
   FALLBACK_IMAGE,
 } from '../api'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
-import { getNewestZuragUrl } from '../utils/zurag'
+import { getNewestZuragUrl, cloudinaryThumb } from '../utils/zurag'
 
 const { Title, Text } = Typography
 
@@ -264,11 +264,11 @@ export function AduunuudPage() {
                 }}
               >
                 <Image
-                  src={firstImage}
+                  src={cloudinaryThumb(firstImage, 56)}
                   width={56}
                   height={56}
                   style={{ objectFit: 'contain' }}
-                  preview={{ mask: <EyeOutlined /> }}
+                  preview={{ src: firstImage, mask: <EyeOutlined /> }}
                   fallback={FALLBACK_IMAGE}
                 />
               </div>

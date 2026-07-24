@@ -1,5 +1,6 @@
 import { Avatar } from 'antd'
 import { FALLBACK_IMAGE_THUMB } from '../api'
+import { cloudinaryThumb } from '../utils/zurag'
 
 // Эцэг/эх сонголтын жагсаалтын нэг мөр — жижиг thumbnail + нэр + төрсөн он.
 // Select-ийн optionRender дотор ашиглана (AddEditAduuModal, FamilyTree хоёулаа).
@@ -13,12 +14,13 @@ export function AduuOptionRow({
   tursunOn?: number
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, padding: '2px 0' }}>
       {image ? (
         <img
-          src={image}
+          src={cloudinaryThumb(image, 28)}
           width={28}
           height={28}
+          loading="lazy"
           style={{ objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
           onError={(e) => {
             e.currentTarget.src = FALLBACK_IMAGE_THUMB
@@ -33,7 +35,7 @@ export function AduuOptionRow({
           🐴
         </Avatar>
       )}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.3 }}>
         {ner}
         {tursunOn ? ` (${tursunOn})` : ''}
       </span>
