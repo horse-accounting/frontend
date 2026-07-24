@@ -43,6 +43,7 @@ import {
   FALLBACK_IMAGE,
 } from '../api'
 import { AddEditAduuModal } from '../components/AddEditAduuModal'
+import { getNewestZuragUrl } from '../utils/zurag'
 
 const { Title, Text } = Typography
 
@@ -244,7 +245,8 @@ export function AduunuudPage() {
       width: 280,
       fixed: 'left',
       render: (_, record) => {
-        const firstImage = record.zupisnuud?.[0]?.url
+        // Хамгийн сүүлд оруулсан зургийг харуулна (helper дотор id-гээр сонгоно)
+        const firstImage = getNewestZuragUrl(record.zuragnuud)
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {firstImage ? (

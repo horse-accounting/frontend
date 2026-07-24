@@ -130,9 +130,9 @@ export function AduuDetailPage() {
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} sm={8} md={6} lg={5}>
             <div className="detail-hero-image">
-              {aduu.zupisnuud && aduu.zupisnuud.length > 0 ? (
+              {aduu.zuragnuud && aduu.zuragnuud.length > 0 ? (
                 <Image
-                  src={aduu.zupisnuud[0].url}
+                  src={aduu.zuragnuud[0].url}
                   alt={aduu.ner}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   fallback={FALLBACK_IMAGE}
@@ -214,11 +214,11 @@ export function AduuDetailPage() {
         {/* Left Column */}
         <Col xs={24} lg={8}>
           {/* Gallery */}
-          {aduu.zupisnuud && aduu.zupisnuud.length > 1 && (
+          {aduu.zuragnuud && aduu.zuragnuud.length > 1 && (
             <Card title="Зургууд" size="small" style={{ marginBottom: 24 }}>
               <Image.PreviewGroup>
                 <Row gutter={[8, 8]}>
-                  {aduu.zupisnuud.map((zurag, index) => (
+                  {aduu.zuragnuud.map((zurag, index) => (
                     <Col span={8} key={zurag.id || index}>
                       <div>
                         <Image
@@ -383,7 +383,7 @@ export function AduuDetailPage() {
             id: aduu.id,
             ner: aduu.ner,
             huis: aduu.huis,
-            zupisnuud: aduu.zupisnuud,
+            zuragnuud: aduu.zuragnuud,
           }}
           ancestors={familyTree.ancestors}
           descendants={familyTree.descendants}
