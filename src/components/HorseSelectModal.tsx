@@ -12,6 +12,7 @@ import {
 import { SearchOutlined, CheckCircleFilled, TrophyFilled } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useAduunuud, type Aduu, type Huis } from '../api'
+import { cloudinaryThumb } from '../utils/zurag'
 
 const { Text } = Typography
 
@@ -75,7 +76,7 @@ export function HorseSelectModal({ open, selectedId, onSelect, onClose }: HorseS
         return (
           <Flex gap={12} align="center">
             <Avatar
-              src={record.zuragnuud?.[0]?.url}
+              src={cloudinaryThumb(record.zuragnuud?.[0]?.url, 48)}
               size={48}
               shape="square"
               style={{ borderRadius: 8, flexShrink: 0 }}
